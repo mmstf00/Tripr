@@ -56,9 +56,10 @@ export const SwipeCard = ({
   return (
     <div
       className={cn(
-        "absolute left-0 right-0 top-0 w-full transition-transform",
+        "absolute left-0 right-0 top-0 w-full",
         "h-[calc(100%-80px)]",
-        isActive ? "z-20" : "z-10 scale-95 opacity-0"
+        isActive ? "z-20" : "z-10 scale-95 opacity-0",
+        !isDragging && "transition-all duration-500 ease-out"
       )}
       style={{
         transform: `translateX(${dragX}px) translateY(${
@@ -66,6 +67,7 @@ export const SwipeCard = ({
         }px) rotate(${rotation}deg)`,
         opacity: isActive ? opacity : 0,
         touchAction: "none",
+        willChange: isDragging ? "transform" : "auto",
       }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
