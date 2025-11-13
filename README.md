@@ -126,13 +126,39 @@ npx cap open ios
 
 ### Android
 
+#### Setup Android SDK Path and Studio
+
+Before building for Android, you must configure the Android SDK location and Android Studio path.
+
+**1. Configure Android SDK location** - Create or update `android/local.properties` with:
+
+```properties
+sdk.dir=C:\Users\<YourUsername>\AppData\Local\Android\Sdk
+```
+
+Or set the `ANDROID_HOME` environment variable:
+
+```bash
+$env:ANDROID_HOME = "C:\Users\<YourUsername>\AppData\Local\Android\Sdk"
+```
+
+**2. Configure Android Studio path** - Set the `CAPACITOR_ANDROID_STUDIO_PATH` environment variable to point to your Android Studio installation:
+
+```bash
+$env:CAPACITOR_ANDROID_STUDIO_PATH = "C:\Program Files\Android\Android Studio"
+```
+
+Or on your system, find your Android Studio installation path and set it accordingly.
+
+#### Build and Deploy
+
 Build and deploy for Android:
 
 ```bash
 npx cap add android
 npx cap build android
 # or open in Android Studio
-npx cap open android
+npx cap run android
 ```
 
 ### Sync Native Changes
