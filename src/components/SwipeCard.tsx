@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { X, Heart } from "lucide-react";
 import { Destination } from "@/data/destinations";
 import { cn } from "@/lib/utils";
+import { Heart, X } from "lucide-react";
+import { useState } from "react";
 
 interface SwipeCardProps {
   destination: Destination;
@@ -9,7 +9,11 @@ interface SwipeCardProps {
   isActive: boolean;
 }
 
-export const SwipeCard = ({ destination, onSwipe, isActive }: SwipeCardProps) => {
+export const SwipeCard = ({
+  destination,
+  onSwipe,
+  isActive,
+}: SwipeCardProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragX, setDragX] = useState(0);
   const [dragY, setDragY] = useState(0);
@@ -39,17 +43,21 @@ export const SwipeCard = ({ destination, onSwipe, isActive }: SwipeCardProps) =>
   const opacity = 1 - Math.abs(dragX) / 300;
 
   const getImagePath = (imageName: string) => {
-    return new URL(`../assets/destinations/${imageName}.jpg`, import.meta.url).href;
+    return new URL(`../assets/destinations/${imageName}.jpg`, import.meta.url)
+      .href;
   };
 
   return (
     <div
       className={cn(
-        "absolute inset-0 w-full h-full transition-transform",
+        "absolute left-0 right-0 top-0 w-full transition-transform",
+        "h-[calc(100%-80px)]",
         isActive ? "z-20" : "z-10 scale-95 opacity-0"
       )}
       style={{
-        transform: `translateX(${dragX}px) translateY(${dragY * 0.1}px) rotate(${rotation}deg)`,
+        transform: `translateX(${dragX}px) translateY(${
+          dragY * 0.1
+        }px) rotate(${rotation}deg)`,
         opacity: isActive ? opacity : 0,
       }}
       onTouchStart={handleTouchStart}
@@ -63,7 +71,7 @@ export const SwipeCard = ({ destination, onSwipe, isActive }: SwipeCardProps) =>
           className="h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-        
+
         {/* Like/Dislike indicators */}
         {dragX > 50 && (
           <div className="absolute top-8 right-8 rotate-12 border-4 border-accent text-accent px-6 py-3 rounded-xl text-2xl font-bold">
@@ -75,12 +83,12 @@ export const SwipeCard = ({ destination, onSwipe, isActive }: SwipeCardProps) =>
             SKIP
           </div>
         )}
-        
+
         <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
           <h2 className="text-4xl font-bold mb-2">{destination.name}</h2>
           <p className="text-xl mb-3 opacity-90">{destination.country}</p>
           <p className="text-base opacity-80 mb-4">{destination.description}</p>
-          
+
           <div className="flex gap-2 flex-wrap">
             {destination.tags.map((tag) => (
               <span
@@ -93,20 +101,20 @@ export const SwipeCard = ({ destination, onSwipe, isActive }: SwipeCardProps) =>
           </div>
         </div>
       </div>
-      
+
       {/* Action buttons */}
-      <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 flex gap-6 z-30">
+      <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 flex gap-6 z-30">
         <button
           onClick={() => onSwipe(false)}
-          className="w-16 h-16 rounded-full bg-white shadow-[var(--shadow-card)] flex items-center justify-center hover:scale-110 transition-transform"
+          className="w-14 h-14 rounded-full bg-white shadow-[var(--shadow-card)] flex items-center justify-center hover:scale-110 transition-transform"
         >
-          <X className="w-8 h-8 text-destructive" />
+          <X className="w-7 h-7 text-destructive" />
         </button>
         <button
           onClick={() => onSwipe(true)}
-          className="w-16 h-16 rounded-full bg-white shadow-[var(--shadow-card)] flex items-center justify-center hover:scale-110 transition-transform"
+          className="w-14 h-14 rounded-full bg-white shadow-[var(--shadow-card)] flex items-center justify-center hover:scale-110 transition-transform"
         >
-          <Heart className="w-8 h-8 text-accent" />
+          <Heart className="w-7 h-7 text-accent" />
         </button>
       </div>
     </div>

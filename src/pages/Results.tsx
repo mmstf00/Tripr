@@ -1,13 +1,14 @@
-import { useLocation, useNavigate } from "react-router-dom";
-import { destinations } from "@/data/destinations";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { MapPin, Sparkles, RefreshCw } from "lucide-react";
+import { destinations } from "@/data/destinations";
+import { MapPin, RefreshCw, Sparkles } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const Results = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const likedDestinations = (location.state?.likedDestinations || []) as string[];
+  const likedDestinations = (location.state?.likedDestinations ||
+    []) as string[];
 
   const likedPlaces = destinations.filter((d) =>
     likedDestinations.includes(d.id)
@@ -26,7 +27,8 @@ const Results = () => {
     .map(([tag]) => tag);
 
   const getImagePath = (imageName: string) => {
-    return new URL(`../assets/destinations/${imageName}.jpg`, import.meta.url).href;
+    return new URL(`../assets/destinations/${imageName}.jpg`, import.meta.url)
+      .href;
   };
 
   if (likedPlaces.length === 0) {
@@ -53,7 +55,8 @@ const Results = () => {
           <Sparkles className="w-16 h-16 mx-auto mb-6" />
           <h1 className="text-5xl font-bold mb-4">Your Travel Profile</h1>
           <p className="text-xl opacity-90">
-            Based on your choices, here's what we discovered about your travel style
+            Based on your choices, here's what we discovered about your travel
+            style
           </p>
         </div>
       </section>
@@ -78,8 +81,11 @@ const Results = () => {
             </div>
             <p className="text-muted-foreground text-lg">
               You have a preference for{" "}
-              <strong className="text-foreground">{topPreferences.join(", ")}</strong>{" "}
-              destinations. Your ideal trip combines these elements for an unforgettable experience!
+              <strong className="text-foreground">
+                {topPreferences.join(", ")}
+              </strong>{" "}
+              destinations. Your ideal trip combines these elements for an
+              unforgettable experience!
             </p>
           </Card>
 
@@ -105,7 +111,9 @@ const Results = () => {
                   </div>
                 </div>
                 <div className="p-6">
-                  <p className="text-muted-foreground mb-4">{destination.description}</p>
+                  <p className="text-muted-foreground mb-4">
+                    {destination.description}
+                  </p>
                   <div className="flex gap-2 flex-wrap">
                     {destination.tags.map((tag) => (
                       <span
@@ -135,7 +143,10 @@ const Results = () => {
             <Button
               size="lg"
               variant="hero"
-              onClick={() => navigate("/")}
+              onClick={() => {
+                window.scrollTo(0, 0);
+                navigate("/");
+              }}
               className="px-8"
             >
               Start New Journey

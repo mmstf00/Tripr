@@ -1,9 +1,9 @@
+import { SwipeCard } from "@/components/SwipeCard";
+import { Button } from "@/components/ui/button";
+import { destinations } from "@/data/destinations";
+import { ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { SwipeCard } from "@/components/SwipeCard";
-import { destinations } from "@/data/destinations";
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
 
 const Swipe = () => {
   const navigate = useNavigate();
@@ -12,7 +12,7 @@ const Swipe = () => {
 
   const handleSwipe = (liked: boolean) => {
     const currentDestination = destinations[currentIndex];
-    
+
     if (liked) {
       setLikedDestinations((prev) => [...prev, currentDestination.id]);
     }
@@ -31,7 +31,7 @@ const Swipe = () => {
   const progress = ((currentIndex + 1) / destinations.length) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 flex flex-col overflow-hidden">
       {/* Header with progress */}
       <div className="p-6">
         <div className="max-w-md mx-auto">
@@ -43,7 +43,9 @@ const Swipe = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate("/results", { state: { likedDestinations } })}
+                onClick={() =>
+                  navigate("/results", { state: { likedDestinations } })
+                }
               >
                 See Results
                 <ArrowRight className="ml-1 w-4 h-4" />
