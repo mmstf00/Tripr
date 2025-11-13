@@ -2,13 +2,37 @@ import { SwipeCard } from "@/components/SwipeCard";
 import { Button } from "@/components/ui/button";
 import { destinations } from "@/data/destinations";
 import { ArrowRight } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const Swipe = () => {
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [likedDestinations, setLikedDestinations] = useState<string[]>([]);
+
+  useEffect(() => {
+    // Prevent swipe back/forward gestures from screen edges
+    const preventEdgeSwipe = (e: TouchEvent) => {
+      const touch = e.touches[0];
+      // Block swipes from the left or right edges (typically 0-50px or width-50 to width)
+      if (touch.clientX < 50 || touch.clientX > window.innerWidth - 50) {
+        e.preventDefault();
+      }
+    };
+
+    // Add non-passive listeners to allow preventDefault
+    document.addEventListener("touchstart", preventEdgeSwipe, {
+      passive: false,
+    });
+    document.addEventListener("touchmove", preventEdgeSwipe, {
+      passive: false,
+    });
+
+    return () => {
+      document.removeEventListener("touchstart", preventEdgeSwipe);
+      document.removeEventListener("touchmove", preventEdgeSwipe);
+    };
+  }, []);
 
   const handleSwipe = (liked: boolean) => {
     const currentDestination = destinations[currentIndex];

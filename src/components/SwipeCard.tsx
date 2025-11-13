@@ -18,19 +18,25 @@ export const SwipeCard = ({
   const [dragX, setDragX] = useState(0);
   const [dragY, setDragY] = useState(0);
 
-  const handleTouchStart = () => {
+  const handleTouchStart = (e: React.TouchEvent) => {
     setIsDragging(true);
+    e.preventDefault();
+    e.stopPropagation();
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isDragging) return;
+    e.preventDefault();
+    e.stopPropagation();
     const touch = e.touches[0];
     setDragX(touch.clientX - window.innerWidth / 2);
     setDragY(touch.clientY - window.innerHeight / 2);
   };
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = (e: React.TouchEvent) => {
     setIsDragging(false);
+    e.preventDefault();
+    e.stopPropagation();
     if (Math.abs(dragX) > 100) {
       onSwipe(dragX > 0);
     } else {
@@ -59,6 +65,7 @@ export const SwipeCard = ({
           dragY * 0.1
         }px) rotate(${rotation}deg)`,
         opacity: isActive ? opacity : 0,
+        touchAction: "none",
       }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
