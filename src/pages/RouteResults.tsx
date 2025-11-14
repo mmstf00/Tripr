@@ -1,13 +1,13 @@
 import { Header } from "@/components/Header";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/data/badge";
+import { Button } from "@/components/ui/interactive/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@/components/ui/data/card";
 import { Country, RouteMetrics } from "@/types/countries";
 import {
   calculateDistance,

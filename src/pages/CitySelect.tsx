@@ -1,8 +1,8 @@
 import { Header } from "@/components/Header";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/data/badge";
+import { Button } from "@/components/ui/interactive/button";
+import { Card, CardContent } from "@/components/ui/data/card";
+import { Input } from "@/components/ui/form/input";
 import { countries } from "@/data/countries";
 import { Country } from "@/types/countries";
 import { Search } from "lucide-react";

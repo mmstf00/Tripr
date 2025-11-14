@@ -1,6 +1,6 @@
 import { Header } from "@/components/Header";
 import { SwipeCard } from "@/components/SwipeCard";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/interactive/button";
 import { countries } from "@/data/countries";
 import { Country, Place } from "@/types/countries";
 import { ArrowRight } from "lucide-react";

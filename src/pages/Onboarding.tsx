@@ -1,7 +1,7 @@
 import { Header } from "@/components/Header";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/interactive/button";
+import { Card } from "@/components/ui/data/card";
+import { Input } from "@/components/ui/form/input";
 import { ArrowRight, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";

@@ -1,6 +1,6 @@
 import heroImage from "@/assets/hero-travel.jpg";
 import { Header } from "@/components/Header";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/interactive/button";
 import { Heart, MapPin, Plane } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 

@@ -2,7 +2,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Plane } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { UserMenu } from "./UserMenu";
-import { Button } from "./ui/button";
+import { Button } from "./ui/interactive/button";
 
 export const Header = () => {
   const { user, isAuthenticated } = useAuth();

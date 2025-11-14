@@ -1,5 +1,5 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/data/avatar";
+import { Button } from "@/components/ui/interactive/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,7 +7,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/overlay/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { LogOut, Sparkles, User as UserIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
