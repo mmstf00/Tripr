@@ -1,8 +1,8 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const tripTypes = [
   { id: "adventure", label: "Adventure", emoji: "🏔️" },
@@ -25,7 +25,7 @@ const Onboarding = () => {
 
   const handleContinue = () => {
     if (selectedTypes.length > 0) {
-      navigate("/swipe");
+      navigate("/country-select");
     }
   };
 

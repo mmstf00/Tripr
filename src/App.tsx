@@ -1,13 +1,15 @@
-import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import CitySelect from "./pages/CitySelect";
+import CountrySelect from "./pages/CountrySelect";
 import Index from "./pages/Index";
-import Onboarding from "./pages/Onboarding";
-import Swipe from "./pages/Swipe";
-import Results from "./pages/Results";
 import NotFound from "./pages/NotFound";
+import Onboarding from "./pages/Onboarding";
+import RouteResults from "./pages/RouteResults";
+import Swipe from "./pages/Swipe";
 
 const queryClient = new QueryClient();
 
@@ -20,8 +22,10 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/onboarding" element={<Onboarding />} />
-          <Route path="/swipe" element={<Swipe />} />
-          <Route path="/results" element={<Results />} />
+          <Route path="/country-select" element={<CountrySelect />} />
+          <Route path="/city-select/:countryId" element={<CitySelect />} />
+          <Route path="/swipe/:countryId" element={<Swipe />} />
+          <Route path="/route-results" element={<RouteResults />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
