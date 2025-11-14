@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Heart, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface SwipeDestination {
   id: string;
@@ -25,33 +25,60 @@ export const SwipeCard = ({
   const [isDragging, setIsDragging] = useState(false);
   const [dragX, setDragX] = useState(0);
   const [dragY, setDragY] = useState(0);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const startXRef = useRef(0);
+  const startYRef = useRef(0);
+  const isDraggingRef = useRef(false);
+  const dragXRef = useRef(0);
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setIsDragging(true);
-    e.preventDefault();
-    e.stopPropagation();
-  };
+  useEffect(() => {
+    const card = cardRef.current;
+    if (!card || !isActive) return;
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging) return;
-    e.preventDefault();
-    e.stopPropagation();
-    const touch = e.touches[0];
-    setDragX(touch.clientX - window.innerWidth / 2);
-    setDragY(touch.clientY - window.innerHeight / 2);
-  };
+    const handleTouchStart = (e: TouchEvent) => {
+      isDraggingRef.current = true;
+      setIsDragging(true);
+      const touch = e.touches[0];
+      startXRef.current = touch.clientX;
+      startYRef.current = touch.clientY;
+      e.preventDefault();
+    };
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    setIsDragging(false);
-    e.preventDefault();
-    e.stopPropagation();
-    if (Math.abs(dragX) > 100) {
-      onSwipe(dragX > 0);
-    } else {
-      setDragX(0);
-      setDragY(0);
-    }
-  };
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!isDraggingRef.current) return;
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - startXRef.current;
+      const deltaY = touch.clientY - startYRef.current;
+      dragXRef.current = deltaX;
+      setDragX(deltaX);
+      setDragY(deltaY);
+      e.preventDefault();
+    };
+
+    const handleTouchEnd = () => {
+      isDraggingRef.current = false;
+      setIsDragging(false);
+      const finalDragX = dragXRef.current;
+      if (Math.abs(finalDragX) > 100) {
+        onSwipe(finalDragX > 0);
+      } else {
+        setDragX(0);
+        setDragY(0);
+        dragXRef.current = 0;
+      }
+    };
+
+    // Add non-passive event listeners
+    card.addEventListener("touchstart", handleTouchStart, { passive: false });
+    card.addEventListener("touchmove", handleTouchMove, { passive: false });
+    card.addEventListener("touchend", handleTouchEnd, { passive: false });
+
+    return () => {
+      card.removeEventListener("touchstart", handleTouchStart);
+      card.removeEventListener("touchmove", handleTouchMove);
+      card.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [isActive, onSwipe]);
 
   const rotation = dragX / 20;
   const opacity = 1 - Math.abs(dragX) / 300;
@@ -67,6 +94,7 @@ export const SwipeCard = ({
 
   return (
     <div
+      ref={cardRef}
       className={cn(
         "absolute left-0 right-0 top-0 w-full",
         "h-[calc(100%-80px)]",
@@ -81,9 +109,6 @@ export const SwipeCard = ({
         touchAction: "none",
         willChange: isDragging ? "transform" : "auto",
       }}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
     >
       <div className="relative h-full w-full overflow-hidden rounded-3xl shadow-[var(--shadow-elevated)]">
         <img
