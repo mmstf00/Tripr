@@ -32,7 +32,7 @@ const Swipe = () => {
     locationState.country || null
   );
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [likedPlaces, setLikedPlaces] = useState<Place[]>([]);
+  const [likedItems, setLikedItems] = useState<SwipeItem[]>([]);
 
   // Ensure we always have a selected country
   useEffect(() => {
@@ -78,7 +78,7 @@ const Swipe = () => {
 
   useEffect(() => {
     setCurrentIndex(0);
-    setLikedPlaces([]);
+    setLikedItems([]);
   }, [selectedCountry, cityFilter]);
 
   const selectedCities = useMemo(() => {
@@ -166,11 +166,11 @@ const Swipe = () => {
     }
 
     if (liked) {
-      setLikedPlaces((prev) => {
-        if (prev.some((place) => place.id === currentItem.city.id)) {
+      setLikedItems((prev) => {
+        if (prev.some((item) => item.id === currentItem.id)) {
           return prev;
         }
-        return [...prev, currentItem.city];
+        return [...prev, currentItem];
       });
     }
 
@@ -179,15 +179,12 @@ const Swipe = () => {
         setCurrentIndex((prev) => prev + 1);
       }, 300);
     } else {
-      const finalLikedPlaces =
-        liked && !likedPlaces.some((place) => place.id === currentItem.city.id)
-          ? [...likedPlaces, currentItem.city]
-          : likedPlaces;
+      const finalLikedItems = liked ? [...likedItems, currentItem] : likedItems;
       setTimeout(() => {
         navigate("/route-results", {
           state: {
             country: selectedCountry,
-            likedPlaces: finalLikedPlaces,
+            likedItems: finalLikedItems,
           },
         });
       }, 300);
@@ -204,7 +201,7 @@ const Swipe = () => {
               {currentIndex + 1} of {swipeItems.length} experiences in{" "}
               {selectedCountry.name}
             </span>
-            {likedPlaces.length > 0 && (
+            {likedItems.length > 0 && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -212,7 +209,7 @@ const Swipe = () => {
                   navigate("/route-results", {
                     state: {
                       country: selectedCountry,
-                      likedPlaces,
+                      likedItems,
                     },
                   })
                 }

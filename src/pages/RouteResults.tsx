@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Country, Place, RouteMetrics } from "@/types/countries";
+import { Country, RouteMetrics } from "@/types/countries";
 import {
   calculateDistance,
   calculateRouteMetrics,
@@ -25,6 +25,21 @@ import {
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
+interface SwipeItem {
+  id: string;
+  title: string;
+  description: string;
+  image: string;
+  tags: string[];
+  countryLabel: string;
+  city: {
+    id: string;
+    name: string;
+    coordinates: { lat: number; lng: number };
+    estimatedDuration: number;
+  };
+}
+
 const RouteResults = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -32,23 +47,58 @@ const RouteResults = () => {
   const [country, setCountry] = useState<Country | null>(
     location.state?.country || null
   );
-  const [likedPlaces, setLikedPlaces] = useState<Place[]>(
-    location.state?.likedPlaces || []
+  const [likedItems, setLikedItems] = useState<SwipeItem[]>(
+    location.state?.likedItems || []
   );
-  const [optimizedRoute, setOptimizedRoute] = useState<Place[]>([]);
+  const [optimizedRoute, setOptimizedRoute] = useState<SwipeItem[]>([]);
   const [routeMetrics, setRouteMetrics] = useState<RouteMetrics | null>(null);
 
   useEffect(() => {
-    if (!country || likedPlaces.length === 0) {
+    if (!country || likedItems.length === 0) {
       navigate("/country-select");
       return;
     }
 
-    const optimized = optimizeRoute(likedPlaces);
+    // Convert SwipeItems to Places for route optimization
+    const placesForOptimization = likedItems.map((item) => ({
+      id: item.id,
+      name: item.city.name,
+      description: item.description,
+      image: item.image,
+      tags: item.tags,
+      coordinates: item.city.coordinates,
+      estimatedDuration: item.city.estimatedDuration,
+    }));
+
+    const optimized = optimizeRoute(placesForOptimization);
+
+    // Map optimized places back to SwipeItems
+    const optimizedItems = optimized.map((place) => {
+      const originalItem = likedItems.find(
+        (item) => item.id === place.id || item.city.id === place.id
+      );
+      return (
+        originalItem || {
+          id: place.id,
+          title: place.name,
+          description: place.description,
+          image: place.image,
+          tags: place.tags,
+          countryLabel: `${place.name}, ${country.name}`,
+          city: {
+            id: place.id,
+            name: place.name,
+            coordinates: place.coordinates,
+            estimatedDuration: place.estimatedDuration,
+          },
+        }
+      );
+    });
+
     const metrics = calculateRouteMetrics(optimized);
-    setOptimizedRoute(optimized);
+    setOptimizedRoute(optimizedItems);
     setRouteMetrics(metrics);
-  }, [country, likedPlaces, navigate]);
+  }, [country, likedItems, navigate]);
 
   if (!country || !routeMetrics || optimizedRoute.length === 0) {
     return (
@@ -65,18 +115,6 @@ const RouteResults = () => {
       </div>
     );
   }
-
-  // Analyze travel personality
-  const allTags = optimizedRoute.flatMap((d) => d.tags);
-  const tagCounts = allTags.reduce((acc, tag) => {
-    acc[tag] = (acc[tag] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  const topPreferences = Object.entries(tagCounts)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 3)
-    .map(([tag]) => tag);
 
   return (
     <div className="min-h-screen bg-background">
@@ -167,32 +205,6 @@ const RouteResults = () => {
             </Card>
           </div>
 
-          {/* Travel Personality */}
-          <Card className="p-8 mb-12 animate-fade-in">
-            <h2 className="text-2xl font-bold mb-6 flex items-center">
-              <MapPin className="w-6 h-6 mr-2 text-primary" />
-              Your Travel Preferences
-            </h2>
-            <div className="flex gap-3 flex-wrap mb-6">
-              {topPreferences.map((pref) => (
-                <span
-                  key={pref}
-                  className="px-6 py-3 bg-primary/10 text-primary rounded-full text-lg font-medium capitalize"
-                >
-                  {pref}
-                </span>
-              ))}
-            </div>
-            <p className="text-muted-foreground text-lg">
-              You have a preference for{" "}
-              <strong className="text-foreground">
-                {topPreferences.join(", ")}
-              </strong>{" "}
-              destinations. Your ideal trip combines these elements for an
-              unforgettable experience!
-            </p>
-          </Card>
-
           {/* Route Steps */}
           <Card className="mb-8 animate-fade-in">
             <CardHeader>
@@ -203,33 +215,36 @@ const RouteResults = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {optimizedRoute.map((place, index) => (
-                  <div key={place.id}>
-                    <div className="flex gap-4 items-start">
-                      <div className="flex-shrink-0 w-12 h-12 bg-gradient-hero rounded-full flex items-center justify-center text-white font-bold">
+                {optimizedRoute.map((item, index) => (
+                  <div key={item.id}>
+                    <div className="flex gap-3 sm:gap-4 items-start">
+                      <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-gradient-hero rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-base">
                         {index + 1}
                       </div>
-                      <div className="flex-1">
-                        <div className="flex items-start gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
                           <img
-                            src={place.image}
-                            alt={place.name}
-                            className="w-24 h-24 object-cover rounded-lg shadow-[var(--shadow-card)]"
+                            src={item.image}
+                            alt={item.title}
+                            className="w-full h-48 sm:w-24 sm:h-24 object-cover rounded-lg shadow-[var(--shadow-card)] flex-shrink-0"
                           />
-                          <div className="flex-1">
-                            <h3 className="text-xl font-bold mb-1">
-                              {place.name}
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-lg sm:text-xl font-bold mb-1 break-words">
+                              {item.title}
                             </h3>
-                            <p className="text-muted-foreground mb-2">
-                              {place.description}
+                            <p className="text-xs sm:text-sm text-muted-foreground mb-1">
+                              {item.city.name}
                             </p>
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <p className="text-sm sm:text-base text-muted-foreground mb-2 break-words">
+                              {item.description}
+                            </p>
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
                               <span className="flex items-center gap-1">
-                                <Clock className="w-4 h-4" />
-                                {place.estimatedDuration}h
+                                <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+                                {item.city.estimatedDuration}h
                               </span>
-                              <div className="flex gap-1">
-                                {place.tags.slice(0, 3).map((tag) => (
+                              <div className="flex gap-1 flex-wrap">
+                                {item.tags.slice(0, 3).map((tag) => (
                                   <Badge
                                     key={tag}
                                     variant="outline"
@@ -246,25 +261,25 @@ const RouteResults = () => {
                     </div>
 
                     {index < optimizedRoute.length - 1 && (
-                      <div className="ml-6 my-2 flex items-center gap-2 text-sm text-muted-foreground">
-                        <div className="w-0.5 h-8 bg-border" />
-                        <ArrowRight className="w-4 h-4" />
-                        <span>
+                      <div className="ml-5 sm:ml-6 my-2 flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                        <div className="w-0.5 h-6 sm:h-8 bg-border" />
+                        <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                        <span className="break-words">
                           {Math.round(
                             calculateDistance(
-                              place.coordinates.lat,
-                              place.coordinates.lng,
-                              optimizedRoute[index + 1].coordinates.lat,
-                              optimizedRoute[index + 1].coordinates.lng
+                              item.city.coordinates.lat,
+                              item.city.coordinates.lng,
+                              optimizedRoute[index + 1].city.coordinates.lat,
+                              optimizedRoute[index + 1].city.coordinates.lng
                             )
                           )}{" "}
                           km • ~
                           {Math.round(
                             calculateDistance(
-                              place.coordinates.lat,
-                              place.coordinates.lng,
-                              optimizedRoute[index + 1].coordinates.lat,
-                              optimizedRoute[index + 1].coordinates.lng
+                              item.city.coordinates.lat,
+                              item.city.coordinates.lng,
+                              optimizedRoute[index + 1].city.coordinates.lat,
+                              optimizedRoute[index + 1].city.coordinates.lng
                             ) / 50
                           )}{" "}
                           hour travel
