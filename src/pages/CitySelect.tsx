@@ -1,3 +1,4 @@
+import { Header } from "@/components/Header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -103,118 +104,121 @@ const CitySelect = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-secondary/10 to-background p-6">
-      <div className="max-w-5xl mx-auto">
-        <div className="text-center mb-10 animate-fade-in">
-          <p className="text-sm font-semibold text-primary uppercase tracking-[0.2em] mb-3">
-            Step 2 · Cities
-          </p>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Where in {country.name} are you headed?
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Pick one or multiple cities to see their most loved experiences.
-            We'll tailor the swipe deck to your picks.
-          </p>
-        </div>
-
-        {/* Search Bar */}
-        <div className="mb-8 max-w-md mx-auto">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-            <Input
-              type="text"
-              placeholder="Search cities..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-12 text-base"
-            />
+    <div className="min-h-screen bg-gradient-to-b from-background via-secondary/10 to-background">
+      <Header />
+      <div className="p-6 pt-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10 animate-fade-in">
+            <p className="text-sm font-semibold text-primary uppercase tracking-[0.2em] mb-3">
+              Step 2 · Cities
+            </p>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+              Where in {country.name} are you headed?
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Pick one or multiple cities to see their most loved experiences.
+              We'll tailor the swipe deck to your picks.
+            </p>
           </div>
-        </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          {filteredCityCards.length > 0 ? (
-            filteredCityCards.map((city, index) => {
-              const isSelected = selectedCities.includes(city.id);
-              return (
-                <Card
-                  key={city.id}
-                  className={`overflow-hidden cursor-pointer group transition-all hover:shadow-[var(--shadow-elevated)] ${
-                    isSelected
-                      ? "border-primary shadow-[var(--shadow-card)]"
-                      : ""
-                  }`}
-                  onClick={() => toggleCity(city.id)}
-                  style={{ animationDelay: `${index * 0.05}s` }}
-                >
-                  <div className="relative h-48">
-                    <img
-                      src={city.image}
-                      alt={city.name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                    <div className="absolute top-4 right-4">
-                      <div
-                        className={`px-4 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${
-                          isSelected
-                            ? "bg-white text-primary"
-                            : "bg-black/40 text-white"
-                        }`}
-                      >
-                        {isSelected ? "Selected" : "Tap to choose"}
+          {/* Search Bar */}
+          <div className="mb-8 max-w-md mx-auto">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
+              <Input
+                type="text"
+                placeholder="Search cities..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 h-12 text-base"
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            {filteredCityCards.length > 0 ? (
+              filteredCityCards.map((city, index) => {
+                const isSelected = selectedCities.includes(city.id);
+                return (
+                  <Card
+                    key={city.id}
+                    className={`overflow-hidden cursor-pointer group transition-all hover:shadow-[var(--shadow-elevated)] ${
+                      isSelected
+                        ? "border-primary shadow-[var(--shadow-card)]"
+                        : ""
+                    }`}
+                    onClick={() => toggleCity(city.id)}
+                    style={{ animationDelay: `${index * 0.05}s` }}
+                  >
+                    <div className="relative h-48">
+                      <img
+                        src={city.image}
+                        alt={city.name}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                      <div className="absolute top-4 right-4">
+                        <div
+                          className={`px-4 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${
+                            isSelected
+                              ? "bg-white text-primary"
+                              : "bg-black/40 text-white"
+                          }`}
+                        >
+                          {isSelected ? "Selected" : "Tap to choose"}
+                        </div>
+                      </div>
+                      <div className="absolute bottom-4 left-4 right-4 text-white">
+                        <h2 className="text-2xl font-bold">{city.name}</h2>
+                        <p className="text-sm opacity-80">{city.description}</p>
                       </div>
                     </div>
-                    <div className="absolute bottom-4 left-4 right-4 text-white">
-                      <h2 className="text-2xl font-bold">{city.name}</h2>
-                      <p className="text-sm opacity-80">{city.description}</p>
-                    </div>
-                  </div>
-                  <CardContent className="p-5">
-                    <div className="flex gap-2 flex-wrap">
-                      {city.tags.slice(0, 4).map((tag) => (
-                        <Badge
-                          key={tag}
-                          variant="secondary"
-                          className="capitalize"
-                        >
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })
-          ) : (
-            <div className="col-span-full text-center py-12 text-muted-foreground">
-              <p className="text-lg">
-                No cities found matching "{searchQuery}"
-              </p>
-            </div>
-          )}
-        </div>
+                    <CardContent className="p-5">
+                      <div className="flex gap-2 flex-wrap">
+                        {city.tags.slice(0, 4).map((tag) => (
+                          <Badge
+                            key={tag}
+                            variant="secondary"
+                            className="capitalize"
+                          >
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })
+            ) : (
+              <div className="col-span-full text-center py-12 text-muted-foreground">
+                <p className="text-lg">
+                  No cities found matching "{searchQuery}"
+                </p>
+              </div>
+            )}
+          </div>
 
-        <div className="flex flex-col md:flex-row items-center gap-4 justify-between mt-10">
-          <Button variant="ghost" onClick={handleSelectAll}>
-            Select All Cities
-          </Button>
-          <div className="flex gap-4">
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={() => navigate("/country-select")}
-            >
-              Change Country
+          <div className="flex flex-col md:flex-row items-center gap-4 justify-between mt-10">
+            <Button variant="ghost" onClick={handleSelectAll}>
+              Select All Cities
             </Button>
-            <Button
-              size="lg"
-              className="px-10"
-              disabled={selectedCities.length === 0}
-              onClick={handleContinue}
-            >
-              Continue to Swipe
-            </Button>
+            <div className="flex gap-4">
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => navigate("/country-select")}
+              >
+                Change Country
+              </Button>
+              <Button
+                size="lg"
+                className="px-10"
+                disabled={selectedCities.length === 0}
+                onClick={handleContinue}
+              >
+                Continue to Swipe
+              </Button>
+            </div>
           </div>
         </div>
       </div>

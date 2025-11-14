@@ -1,3 +1,4 @@
+import { Header } from "@/components/Header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -58,8 +59,6 @@ const RouteResults = () => {
     location.state?.likedItems || []
   );
 
-  // Debug: Log liked items to verify coordinates
-  useEffect(() => {}, [likedItems]);
   const [optimizedRoute, setOptimizedRoute] = useState<SwipeItem[]>([]);
   const [routeMetrics, setRouteMetrics] = useState<RouteMetrics | null>(null);
 
@@ -69,10 +68,7 @@ const RouteResults = () => {
       return;
     }
 
-    // Convert SwipeItems to Places for route optimization
-    // Use highlight coordinates, not city coordinates
     const placesForOptimization = likedItems.map((item) => {
-      // Use highlight coordinates (from item.coordinates)
       const coords = item.coordinates;
       if (!coords) {
         console.error(
@@ -85,7 +81,7 @@ const RouteResults = () => {
         description: item.description,
         image: item.image,
         tags: item.tags,
-        coordinates: coords || item.city.coordinates, // Use highlight coordinates, fallback to city
+        coordinates: coords || item.city.coordinates,
         estimatedDuration: item.city.estimatedDuration,
       };
     });
@@ -97,21 +93,17 @@ const RouteResults = () => {
 
     const optimized = optimizeRoute(placesForOptimization);
 
-    // Map optimized places back to SwipeItems
-    // IMPORTANT: Use coordinates from the optimized place, not the original item
     const optimizedItems = optimized.map((place) => {
       const originalItem = likedItems.find(
         (item) => item.id === place.id || item.city.id === place.id
       );
 
-      // Use coordinates from the optimized place (which has highlight coordinates)
       const finalCoords = place.coordinates;
 
       if (originalItem) {
-        // Preserve original item data but use optimized place coordinates
         return {
           ...originalItem,
-          coordinates: finalCoords, // Use coordinates from optimized place
+          coordinates: finalCoords,
         };
       }
 
@@ -140,15 +132,18 @@ const RouteResults = () => {
 
   if (!country || !routeMetrics || optimizedRoute.length === 0) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-6">
-        <div className="text-center max-w-md animate-fade-in">
-          <h2 className="text-3xl font-bold mb-4">No places selected</h2>
-          <p className="text-muted-foreground mb-8">
-            Let's try again and find some places you'll love!
-          </p>
-          <Button onClick={() => navigate("/country-select")} size="lg">
-            Start Over
-          </Button>
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="flex items-center justify-center p-6">
+          <div className="text-center max-w-md animate-fade-in">
+            <h2 className="text-3xl font-bold mb-4">No places selected</h2>
+            <p className="text-muted-foreground mb-8">
+              Let's try again and find some places you'll love!
+            </p>
+            <Button onClick={() => navigate("/country-select")} size="lg">
+              Start Over
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -156,6 +151,7 @@ const RouteResults = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Header />
       {/* Header */}
       <section className="bg-gradient-hero py-16 px-6">
         <div className="max-w-4xl mx-auto text-center text-white animate-fade-in">
@@ -300,7 +296,6 @@ const RouteResults = () => {
 
                     {index < optimizedRoute.length - 1 &&
                       (() => {
-                        // Prioritize highlight coordinates
                         const currentCoords = item.coordinates;
                         const nextCoords =
                           optimizedRoute[index + 1].coordinates;
@@ -322,7 +317,6 @@ const RouteResults = () => {
                           nextCoords.lng
                         );
 
-                        // If distance is 0, the highlights might have the same coordinates
                         if (distance === 0) {
                           console.warn("Distance is 0 between highlights:", {
                             from: item.title,
@@ -332,11 +326,9 @@ const RouteResults = () => {
                           });
                         }
 
-                        // Calculate travel times for different modes
-                        // Car: ~50 km/h, Public transport: ~30 km/h, Walking: ~5 km/h
-                        const carSpeed = 50; // km/h
-                        const publicTransportSpeed = 30; // km/h
-                        const walkingSpeed = 5; // km/h
+                        const carSpeed = 50;
+                        const publicTransportSpeed = 30;
+                        const walkingSpeed = 5;
 
                         const formatTime = (hours: number): string => {
                           const minutes = hours * 60;

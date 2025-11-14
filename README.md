@@ -7,6 +7,8 @@ A mobile-first travel planning application built with React, TypeScript, and Cap
 - **Swipe-based Destination Discovery**: Explore travel destinations with an interactive card-based interface
 - **Destination Browsing**: Browse and filter travel destinations
 - **Travel Planning**: Organize and save your travel plans
+- **Google OAuth Authentication**: Secure login with Google accounts
+- **Protected Routes**: Authentication-required pages for personalized experiences
 - **Mobile Support**: Native iOS and Android support via Capacitor
 - **Responsive Design**: Tailored experience for mobile and desktop devices
 - **Modern UI**: Built with Radix UI components and Tailwind CSS
@@ -29,11 +31,19 @@ A mobile-first travel planning application built with React, TypeScript, and Cap
 
 ```
 ├── src/
-│   ├── pages/              # Route pages (Landing, Swipe, Results, etc.)
+│   ├── pages/              # Route pages (Landing, Login, Swipe, Results, etc.)
 │   ├── components/         # Reusable React components
 │   │   ├── ui/            # Radix UI component library
 │   │   ├── NavLink.tsx
-│   │   └── SwipeCard.tsx
+│   │   ├── SwipeCard.tsx
+│   │   ├── ProtectedRoute.tsx  # Route protection component
+│   │   └── UserMenu.tsx        # User menu with logout
+│   ├── contexts/           # React contexts
+│   │   └── AuthContext.tsx    # Authentication context
+│   ├── services/          # Service modules
+│   │   └── auth.ts           # Authentication service
+│   ├── types/             # TypeScript type definitions
+│   │   └── auth.ts           # Authentication types
 │   ├── hooks/             # Custom React hooks
 │   ├── lib/               # Utility functions
 │   ├── data/              # Static data (destinations, etc.)
@@ -70,6 +80,29 @@ bun install
 # or
 npm install
 ```
+
+3. Set up Google OAuth:
+
+   - Go to [Google Cloud Console](https://console.cloud.google.com/)
+   - Create a new project or select an existing one
+   - Enable the Google+ API
+   - Go to "Credentials" → "Create Credentials" → "OAuth client ID"
+   - Choose "Web application" as the application type
+   - Add authorized JavaScript origins:
+     - `http://localhost:8080` (for development)
+     - Your production domain (for production)
+   - Add authorized redirect URIs:
+     - `http://localhost:8080` (for development)
+     - Your production domain (for production)
+   - Copy the Client ID
+
+4. Create a `.env` file in the root directory:
+
+```bash
+VITE_GOOGLE_CLIENT_ID=your-google-oauth-client-id-here
+```
+
+Replace `your-google-oauth-client-id-here` with your actual Google OAuth Client ID.
 
 ### Development
 
@@ -191,6 +224,8 @@ Native platform settings are configured in `capacitor.config.ts`. Platform-speci
 - **Node.js Alias**: Path resolution uses `@` to reference the `src/` directory
 - **Port**: Development server runs on port 8080
 - **Host**: Development server listens on `::`
+- **Environment Variables**:
+  - `VITE_GOOGLE_CLIENT_ID`: Your Google OAuth 2.0 Client ID (required for authentication)
 
 ## Browser Support
 

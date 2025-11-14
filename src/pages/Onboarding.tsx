@@ -1,3 +1,4 @@
+import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -53,66 +54,69 @@ const Onboarding = () => {
   }, [searchQuery]);
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-6">
-      <div className="w-full max-w-6xl animate-fade-in">
-        <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold mb-4">What's Your Vibe?</h1>
-          <p className="text-xl text-muted-foreground">
-            Select the travel styles that excite you most
-          </p>
-        </div>
-
-        {/* Search Bar */}
-        <div className="mb-8 max-w-md mx-auto">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-            <Input
-              type="text"
-              placeholder="Search options..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-12 text-base"
-            />
+    <div className="min-h-screen bg-background">
+      <Header />
+      <div className="flex items-center justify-center p-6 pt-8">
+        <div className="w-full max-w-6xl animate-fade-in">
+          <div className="text-center mb-8">
+            <h1 className="text-5xl font-bold mb-4">What's Your Vibe?</h1>
+            <p className="text-xl text-muted-foreground">
+              Select the travel styles that excite you most
+            </p>
           </div>
-        </div>
 
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 mb-12">
-          {displayedOptions.length > 0 ? (
-            displayedOptions.map((type) => (
-              <Card
-                key={type.id}
-                onClick={() => toggleType(type.id)}
-                className={`p-4 cursor-pointer transition-all hover:scale-105 ${
-                  selectedTypes.includes(type.id)
-                    ? "bg-primary text-primary-foreground shadow-[var(--shadow-card)] border-primary"
-                    : "hover:border-primary/50"
-                }`}
-              >
-                <div className="text-center">
-                  <div className="text-3xl mb-2">{type.emoji}</div>
-                  <div className="text-sm font-semibold">{type.label}</div>
-                </div>
-              </Card>
-            ))
-          ) : (
-            <div className="col-span-full text-center py-8 text-muted-foreground">
-              <p className="text-lg">
-                No options found matching "{searchQuery}"
-              </p>
+          {/* Search Bar */}
+          <div className="mb-8 max-w-md mx-auto">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
+              <Input
+                type="text"
+                placeholder="Search options..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 h-12 text-base"
+              />
             </div>
-          )}
-        </div>
+          </div>
 
-        <div className="flex justify-center">
-          <Button
-            size="lg"
-            onClick={handleContinue}
-            disabled={selectedTypes.length === 0}
-            className="px-12"
-          >
-            Continue to Destinations
-            <ArrowRight className="ml-2 w-5 h-5" />
-          </Button>
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 mb-12">
+            {displayedOptions.length > 0 ? (
+              displayedOptions.map((type) => (
+                <Card
+                  key={type.id}
+                  onClick={() => toggleType(type.id)}
+                  className={`p-4 cursor-pointer transition-all hover:scale-105 ${
+                    selectedTypes.includes(type.id)
+                      ? "bg-primary text-primary-foreground shadow-[var(--shadow-card)] border-primary"
+                      : "hover:border-primary/50"
+                  }`}
+                >
+                  <div className="text-center">
+                    <div className="text-3xl mb-2">{type.emoji}</div>
+                    <div className="text-sm font-semibold">{type.label}</div>
+                  </div>
+                </Card>
+              ))
+            ) : (
+              <div className="col-span-full text-center py-8 text-muted-foreground">
+                <p className="text-lg">
+                  No options found matching "{searchQuery}"
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-center">
+            <Button
+              size="lg"
+              onClick={handleContinue}
+              disabled={selectedTypes.length === 0}
+              className="px-12"
+            >
+              Continue to Destinations
+              <ArrowRight className="ml-2 w-5 h-5" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>

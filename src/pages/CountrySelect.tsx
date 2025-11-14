@@ -1,3 +1,4 @@
+import { Header } from "@/components/Header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -53,7 +54,9 @@ const CountrySelect = () => {
   }, [searchQuery, selectedPreferences]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5">
+      <Header />
+      <div className="p-6 pt-4">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12 animate-fade-in">
           <h1 className="text-5xl font-bold mb-4 bg-gradient-hero bg-clip-text text-transparent">
@@ -113,6 +116,7 @@ const CountrySelect = () => {
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

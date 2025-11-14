@@ -1,3 +1,4 @@
+import { Header } from "@/components/Header";
 import { SwipeCard } from "@/components/SwipeCard";
 import { Button } from "@/components/ui/button";
 import { countries } from "@/data/countries";
@@ -199,8 +200,9 @@ const Swipe = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/20 to-background flex flex-col overflow-hidden">
+      <Header />
       {/* Header with progress */}
-      <div className="p-6">
+      <div className="p-6 pt-4">
         <div className="max-w-md mx-auto">
           <div className="flex justify-between items-center mb-4">
             <span className="text-sm font-medium text-muted-foreground">
