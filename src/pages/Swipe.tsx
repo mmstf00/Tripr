@@ -192,7 +192,7 @@ const Swipe = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/20 to-background flex flex-col overflow-hidden">
       {/* Header with progress */}
       <div className="p-6">
         <div className="max-w-md mx-auto">
