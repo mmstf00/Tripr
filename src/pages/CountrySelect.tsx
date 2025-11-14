@@ -17,9 +17,11 @@ const CountrySelect = () => {
 
   const filteredCountries = useMemo(() => {
     if (!searchQuery.trim()) {
-      return countries;
+      // Show only top 5 countries when no search query
+      return countries.slice(0, 5);
     }
     const query = searchQuery.toLowerCase();
+    // Show all filtered results when searching
     return countries.filter(
       (country) =>
         country.name.toLowerCase().includes(query) ||

@@ -48,9 +48,11 @@ const CitySelect = () => {
 
   const filteredCityCards = useMemo(() => {
     if (!searchQuery.trim()) {
-      return cityCards;
+      // Show only top 5 cities when no search query
+      return cityCards.slice(0, 5);
     }
     const query = searchQuery.toLowerCase();
+    // Show all filtered results when searching
     return cityCards.filter(
       (city) =>
         city.name.toLowerCase().includes(query) ||
