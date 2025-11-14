@@ -18,6 +18,10 @@ const CitySelect = () => {
   );
   const [selectedCities, setSelectedCities] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const selectedPreferences = useMemo(
+    () => (location.state?.selectedPreferences || []) as string[],
+    [location.state?.selectedPreferences]
+  );
 
   useEffect(() => {
     if (!country && countryId) {
@@ -37,14 +41,23 @@ const CitySelect = () => {
       return [];
     }
 
-    return country.places.map((place) => ({
+    let places = country.places;
+
+    // Filter by selected preferences if any
+    if (selectedPreferences.length > 0) {
+      places = places.filter((place) =>
+        place.tags.some((tag) => selectedPreferences.includes(tag))
+      );
+    }
+
+    return places.map((place) => ({
       id: place.id,
       name: place.name,
       description: place.description,
       tags: place.tags,
       image: place.image,
     }));
-  }, [country]);
+  }, [country, selectedPreferences]);
 
   const filteredCityCards = useMemo(() => {
     if (!searchQuery.trim()) {
@@ -84,6 +97,7 @@ const CitySelect = () => {
       state: {
         country,
         cityIds: selectedCities,
+        selectedPreferences,
       },
     });
   };

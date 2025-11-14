@@ -5,29 +5,52 @@ import { countries } from "@/data/countries";
 import { Country } from "@/types/countries";
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const CountrySelect = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
 
+  const selectedPreferences = useMemo(
+    () => (location.state?.selectedPreferences || []) as string[],
+    [location.state?.selectedPreferences]
+  );
+
   const handleCountrySelect = (country: Country) => {
-    navigate(`/city-select/${country.id}`, { state: { country } });
+    navigate(`/city-select/${country.id}`, {
+      state: { country, selectedPreferences },
+    });
   };
 
   const filteredCountries = useMemo(() => {
-    if (!searchQuery.trim()) {
-      // Show only top 5 countries when no search query
-      return countries.slice(0, 5);
+    let result = countries;
+
+    // Filter by selected preferences if any
+    if (selectedPreferences.length > 0) {
+      result = result.filter((country) => {
+        // Check if any place in the country has matching tags
+        return country.places.some((place) =>
+          place.tags.some((tag) => selectedPreferences.includes(tag))
+        );
+      });
     }
-    const query = searchQuery.toLowerCase();
-    // Show all filtered results when searching
-    return countries.filter(
-      (country) =>
-        country.name.toLowerCase().includes(query) ||
-        country.description.toLowerCase().includes(query)
-    );
-  }, [searchQuery]);
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (country) =>
+          country.name.toLowerCase().includes(query) ||
+          country.description.toLowerCase().includes(query)
+      );
+    } else {
+      // Show only top 5 countries when no search query
+      result = result.slice(0, 5);
+    }
+
+    return result;
+  }, [searchQuery, selectedPreferences]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 p-6">
