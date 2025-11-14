@@ -95,12 +95,12 @@ export const SwipeCard = ({
 
         {/* Like/Dislike indicators */}
         {dragX > 50 && (
-          <div className="absolute top-8 right-8 rotate-12 border-4 border-accent text-accent px-6 py-3 rounded-xl text-2xl font-bold">
+          <div className="absolute top-8 left-8 rotate-12 border-4 border-accent text-accent px-8 py-4 rounded-xl text-4xl font-bold">
             LIKE
           </div>
         )}
         {dragX < -50 && (
-          <div className="absolute top-8 left-8 -rotate-12 border-4 border-destructive text-destructive px-6 py-3 rounded-xl text-2xl font-bold">
+          <div className="absolute top-8 right-8 -rotate-12 border-4 border-destructive text-destructive px-8 py-4 rounded-xl text-4xl font-bold">
             SKIP
           </div>
         )}
