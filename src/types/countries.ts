@@ -1,10 +1,15 @@
+export interface Highlight {
+  name: string;
+  image: string;
+}
+
 export interface Place {
   id: string;
   name: string;
   description: string;
   image: string;
   tags: string[];
-  highlights?: string[];
+  highlights?: Highlight[];
   coordinates: {
     lat: number;
     lng: number;

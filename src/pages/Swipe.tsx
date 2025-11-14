@@ -98,9 +98,9 @@ const Swipe = () => {
       if (city.highlights && city.highlights.length > 0) {
         return city.highlights.map((highlight, index) => ({
           id: `${city.id}-highlight-${index}`,
-          title: highlight,
+          title: highlight.name,
           description: `Unmissable spot in ${city.name}, ${selectedCountry.name}.`,
-          image: city.image,
+          image: highlight.image,
           tags: city.tags,
           countryLabel: `${city.name}, ${selectedCountry.name}`,
           city,
