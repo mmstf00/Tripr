@@ -1,10 +1,18 @@
-import { Destination } from "@/data/destinations";
 import { cn } from "@/lib/utils";
 import { Heart, X } from "lucide-react";
 import { useState } from "react";
 
+interface SwipeDestination {
+  id: string;
+  name: string;
+  country: string;
+  description: string;
+  image: string;
+  tags: string[];
+}
+
 interface SwipeCardProps {
-  destination: Destination;
+  destination: SwipeDestination;
   onSwipe: (liked: boolean) => void;
   isActive: boolean;
 }
@@ -48,8 +56,12 @@ export const SwipeCard = ({
   const rotation = dragX / 20;
   const opacity = 1 - Math.abs(dragX) / 300;
 
-  const getImagePath = (imageName: string) => {
-    return new URL(`../assets/destinations/${imageName}.jpg`, import.meta.url)
+  const getImageSrc = (imagePath: string) => {
+    if (imagePath.startsWith("http")) {
+      return imagePath;
+    }
+
+    return new URL(`../assets/destinations/${imagePath}.jpg`, import.meta.url)
       .href;
   };
 
@@ -75,7 +87,7 @@ export const SwipeCard = ({
     >
       <div className="relative h-full w-full overflow-hidden rounded-3xl shadow-[var(--shadow-elevated)]">
         <img
-          src={getImagePath(destination.image)}
+          src={getImageSrc(destination.image)}
           alt={destination.name}
           className="h-full w-full object-cover"
         />
