@@ -2,6 +2,23 @@ import { User } from "@/types/auth";
 
 const USER_STORAGE_KEY = "tripr_user";
 const TOKEN_STORAGE_KEY = "tripr_token";
+const TOKEN_EXPIRY_KEY = "tripr_token_expiry";
+const SESSION_PREFERENCES_KEY = "tripr_session_preferences";
+const SESSION_LAST_ACTIVITY_KEY = "tripr_session_last_activity";
+
+// Google OAuth tokens typically expire after 1 hour (3600 seconds)
+const DEFAULT_TOKEN_EXPIRY = 3600;
+
+// Session timeout: 30 minutes of inactivity (1800 seconds)
+export const DEFAULT_SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
+
+// "Remember Me" extends session forever (using a very large number)
+export const REMEMBER_ME_SESSION_TIMEOUT = Number.MAX_SAFE_INTEGER; // Effectively forever
+
+export interface SessionPreferences {
+  rememberMe: boolean;
+  sessionTimeout: number; // in milliseconds
+}
 
 export const authService = {
   // Save user to localStorage
@@ -24,10 +41,13 @@ export const authService = {
     }
   },
 
-  // Save token to localStorage
-  saveToken: (token: string) => {
+  // Save token to localStorage with expiration tracking
+  saveToken: (token: string, expiresIn?: number) => {
     try {
       localStorage.setItem(TOKEN_STORAGE_KEY, token);
+      // Store expiration time (default to 1 hour if not provided)
+      const expiryTime = Date.now() + ((expiresIn || DEFAULT_TOKEN_EXPIRY) * 1000);
+      localStorage.setItem(TOKEN_EXPIRY_KEY, expiryTime.toString());
     } catch (error) {
       console.error("Failed to save token:", error);
     }
@@ -43,19 +63,162 @@ export const authService = {
     }
   },
 
+  // Get token expiration timestamp
+  getTokenExpiry: (): number | null => {
+    try {
+      const expiry = localStorage.getItem(TOKEN_EXPIRY_KEY);
+      return expiry ? parseInt(expiry, 10) : null;
+    } catch (error) {
+      console.error("Failed to get token expiry:", error);
+      return null;
+    }
+  },
+
+  // Check if token is expired
+  isTokenExpired: (): boolean => {
+    const expiry = authService.getTokenExpiry();
+    if (!expiry) {
+      // No expiry info stored, check if we have a token
+      // If token exists but no expiry, assume it might be expired for safety
+      const token = authService.getToken();
+      return token === null;
+    }
+    return Date.now() > expiry;
+  },
+
+  // Validate token with Google API
+  validateToken: async (token: string): Promise<boolean> => {
+    try {
+      const response = await fetch(
+        `https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${token}`
+      );
+
+      if (!response.ok) {
+        return false;
+      }
+
+      const data = await response.json();
+      // Check if token is valid and not expired
+      // Google returns 'error' field if token is invalid
+      return !data.error && data.aud === import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    } catch (error) {
+      console.error("Token validation error:", error);
+      return false;
+    }
+  },
+
   // Clear authentication data
   clearAuth: () => {
     try {
       localStorage.removeItem(USER_STORAGE_KEY);
       localStorage.removeItem(TOKEN_STORAGE_KEY);
+      localStorage.removeItem(TOKEN_EXPIRY_KEY);
+      localStorage.removeItem(SESSION_PREFERENCES_KEY);
+      localStorage.removeItem(SESSION_LAST_ACTIVITY_KEY);
     } catch (error) {
       console.error("Failed to clear auth:", error);
     }
   },
 
-  // Check if user is authenticated
+  // Check if user is authenticated (with token expiration check)
   isAuthenticated: (): boolean => {
-    return !!authService.getUser() && !!authService.getToken();
+    const user = authService.getUser();
+    const token = authService.getToken();
+
+    if (!user || !token) {
+      return false;
+    }
+
+    // Check if token is expired
+    if (authService.isTokenExpired()) {
+      return false;
+    }
+
+    // Check session timeout
+    if (authService.isSessionExpired()) {
+      return false;
+    }
+
+    return true;
+  },
+
+  // Session Management
+  saveSessionPreferences: (preferences: SessionPreferences) => {
+    try {
+      localStorage.setItem(SESSION_PREFERENCES_KEY, JSON.stringify(preferences));
+      // Update last activity timestamp
+      authService.updateLastActivity();
+    } catch (error) {
+      console.error("Failed to save session preferences:", error);
+    }
+  },
+
+  getSessionPreferences: (): SessionPreferences => {
+    try {
+      const prefsStr = localStorage.getItem(SESSION_PREFERENCES_KEY);
+      if (prefsStr) {
+        return JSON.parse(prefsStr);
+      }
+    } catch (error) {
+      console.error("Failed to get session preferences:", error);
+    }
+    // Default preferences
+    return {
+      rememberMe: false,
+      sessionTimeout: DEFAULT_SESSION_TIMEOUT,
+    };
+  },
+
+  updateLastActivity: () => {
+    try {
+      localStorage.setItem(SESSION_LAST_ACTIVITY_KEY, Date.now().toString());
+    } catch (error) {
+      console.error("Failed to update last activity:", error);
+    }
+  },
+
+  getLastActivity: (): number | null => {
+    try {
+      const lastActivity = localStorage.getItem(SESSION_LAST_ACTIVITY_KEY);
+      return lastActivity ? parseInt(lastActivity, 10) : null;
+    } catch (error) {
+      console.error("Failed to get last activity:", error);
+      return null;
+    }
+  },
+
+  isSessionExpired: (): boolean => {
+    const preferences = authService.getSessionPreferences();
+
+    // If "Remember Me" is enabled, session never expires
+    if (preferences.rememberMe) {
+      return false;
+    }
+
+    const lastActivity = authService.getLastActivity();
+
+    if (!lastActivity) {
+      // No activity recorded, assume session is valid if we have a token
+      return false;
+    }
+
+    const timeSinceLastActivity = Date.now() - lastActivity;
+    return timeSinceLastActivity > preferences.sessionTimeout;
+  },
+
+  // Clear session data (but keep user/token if rememberMe is true)
+  clearSession: (clearAll: boolean = false) => {
+    try {
+      if (clearAll) {
+        localStorage.removeItem(SESSION_PREFERENCES_KEY);
+        localStorage.removeItem(SESSION_LAST_ACTIVITY_KEY);
+      } else {
+        // Only clear last activity, keep preferences
+        localStorage.removeItem(SESSION_LAST_ACTIVITY_KEY);
+      }
+    } catch (error) {
+      console.error("Failed to clear session:", error);
+    }
   },
 };
 

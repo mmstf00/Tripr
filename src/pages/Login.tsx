@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/interactive/button";
 import {
   Card,
   CardContent,
@@ -6,7 +5,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/data/card";
+import { Checkbox } from "@/components/ui/form/checkbox";
+import { Button } from "@/components/ui/interactive/button";
 import { useAuth } from "@/hooks/useAuth";
+import { authService, DEFAULT_SESSION_TIMEOUT } from "@/services/auth";
 import { User } from "@/types/auth";
 import { useGoogleLogin } from "@react-oauth/google";
 import { Plane } from "lucide-react";
@@ -18,6 +20,7 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const handleGoogleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -47,8 +50,18 @@ const Login = () => {
           picture: userInfo.picture,
         };
 
-        // Save user and token
-        login(user, tokenResponse.access_token);
+        // Get token expiration from token response (if available)
+        // Google OAuth tokens typically expire in 1 hour (3600 seconds)
+        const expiresIn = tokenResponse.expires_in || 3600;
+
+        // Save session preferences
+        authService.saveSessionPreferences({
+          rememberMe,
+          sessionTimeout: DEFAULT_SESSION_TIMEOUT,
+        });
+
+        // Save user and token with expiration
+        login(user, tokenResponse.access_token, expiresIn);
 
         toast.success("Successfully logged in!");
         setTimeout(() => {
@@ -131,6 +144,19 @@ const Login = () => {
               </>
             )}
           </Button>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="remember-me"
+              checked={rememberMe}
+              onCheckedChange={(checked) => setRememberMe(checked === true)}
+            />
+            <label
+              htmlFor="remember-me"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer text-muted-foreground"
+            >
+              Remember me
+            </label>
+          </div>
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t border-gray-200 dark:border-gray-700"></span>

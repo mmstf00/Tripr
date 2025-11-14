@@ -4,7 +4,7 @@ import { ReactNode, useEffect, useState } from "react";
 import { AuthContext } from "./authContextValue";
 
 export interface AuthContextType extends AuthState {
-  login: (user: User, token: string) => void;
+  login: (user: User, token: string, expiresIn?: number) => void;
   logout: () => void;
 }
 
@@ -16,18 +16,51 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load user from storage on mount
+  // Load user from storage on mount with token validation
   useEffect(() => {
-    const loadUser = () => {
+    const loadUser = async () => {
       try {
         const savedUser = authService.getUser();
         const token = authService.getToken();
 
-        if (savedUser && token) {
+        if (!savedUser || !token) {
+          setIsLoading(false);
+          return;
+        }
+
+        // Check if token is expired
+        if (authService.isTokenExpired()) {
+          console.log("Token expired, clearing auth");
+          authService.clearAuth();
+          setIsLoading(false);
+          return;
+        }
+
+        // Check if session is expired
+        if (authService.isSessionExpired()) {
+          console.log("Session expired, clearing auth");
+          authService.clearAuth();
+          setIsLoading(false);
+          return;
+        }
+
+        // Update last activity on successful load
+        authService.updateLastActivity();
+
+        // Validate token with Google (optional but recommended)
+        // This ensures the token is still valid on the server side
+        const isValid = await authService.validateToken(token);
+
+        if (isValid) {
           setUser(savedUser);
+        } else {
+          console.log("Token validation failed, clearing auth");
+          authService.clearAuth();
         }
       } catch (error) {
         console.error("Failed to load user:", error);
+        // On error, clear potentially corrupted auth data
+        authService.clearAuth();
       } finally {
         setIsLoading(false);
       }
@@ -36,9 +69,38 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     loadUser();
   }, []);
 
-  const login = (userData: User, token: string) => {
+  // Track user activity to extend session
+  useEffect(() => {
+    const updateActivity = () => {
+      if (user) {
+        authService.updateLastActivity();
+      }
+    };
+
+    // Update activity on user interactions
+    const events = ["mousedown", "keydown", "scroll", "touchstart"];
+    events.forEach((event) => {
+      window.addEventListener(event, updateActivity, { passive: true });
+    });
+
+    // Also update periodically (every 5 minutes)
+    const interval = setInterval(() => {
+      if (user && !authService.isSessionExpired()) {
+        authService.updateLastActivity();
+      }
+    }, 5 * 60 * 1000); // 5 minutes
+
+    return () => {
+      events.forEach((event) => {
+        window.removeEventListener(event, updateActivity);
+      });
+      clearInterval(interval);
+    };
+  }, [user]);
+
+  const login = (userData: User, token: string, expiresIn?: number) => {
     authService.saveUser(userData);
-    authService.saveToken(token);
+    authService.saveToken(token, expiresIn);
     setUser(userData);
   };
 
