@@ -1,15 +1,31 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { countries } from "@/data/countries";
 import { Country } from "@/types/countries";
+import { Search } from "lucide-react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const CountrySelect = () => {
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleCountrySelect = (country: Country) => {
     navigate(`/city-select/${country.id}`, { state: { country } });
   };
+
+  const filteredCountries = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return countries;
+    }
+    const query = searchQuery.toLowerCase();
+    return countries.filter(
+      (country) =>
+        country.name.toLowerCase().includes(query) ||
+        country.description.toLowerCase().includes(query)
+    );
+  }, [searchQuery]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 p-6">
@@ -23,32 +39,54 @@ const CountrySelect = () => {
           </p>
         </div>
 
+        {/* Search Bar */}
+        <div className="mb-8 max-w-md mx-auto">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
+            <Input
+              type="text"
+              placeholder="Search countries..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 h-12 text-base"
+            />
+          </div>
+        </div>
+
         <div className="grid md:grid-cols-2 gap-6">
-          {countries.map((country) => (
-            <Card
-              key={country.id}
-              className="cursor-pointer hover:shadow-[var(--shadow-elevated)] transition-all hover:scale-105 overflow-hidden animate-scale-in"
-              onClick={() => handleCountrySelect(country)}
-            >
-              <div className="relative h-64 overflow-hidden">
-                <img
-                  src={country.image}
-                  alt={country.name}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                <div className="absolute bottom-4 left-4 text-white">
-                  <h2 className="text-3xl font-bold mb-1">{country.name}</h2>
-                  <Badge variant="secondary" className="text-sm">
-                    {country.places.length} Places
-                  </Badge>
+          {filteredCountries.length > 0 ? (
+            filteredCountries.map((country) => (
+              <Card
+                key={country.id}
+                className="cursor-pointer hover:shadow-[var(--shadow-elevated)] transition-all hover:scale-105 overflow-hidden animate-scale-in"
+                onClick={() => handleCountrySelect(country)}
+              >
+                <div className="relative h-64 overflow-hidden">
+                  <img
+                    src={country.image}
+                    alt={country.name}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                  <div className="absolute bottom-4 left-4 text-white">
+                    <h2 className="text-3xl font-bold mb-1">{country.name}</h2>
+                    <Badge variant="secondary" className="text-sm">
+                      {country.places.length} Places
+                    </Badge>
+                  </div>
                 </div>
-              </div>
-              <CardContent className="pt-4">
-                <p className="text-muted-foreground">{country.description}</p>
-              </CardContent>
-            </Card>
-          ))}
+                <CardContent className="pt-4">
+                  <p className="text-muted-foreground">{country.description}</p>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <div className="col-span-full text-center py-12 text-muted-foreground">
+              <p className="text-lg">
+                No countries found matching "{searchQuery}"
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
