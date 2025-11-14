@@ -6,6 +6,9 @@ const TOKEN_EXPIRY_KEY = "tripr_token_expiry";
 const SESSION_PREFERENCES_KEY = "tripr_session_preferences";
 const SESSION_LAST_ACTIVITY_KEY = "tripr_session_last_activity";
 
+// Backend API URL
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+
 // Google OAuth tokens typically expire after 1 hour (3600 seconds)
 const DEFAULT_TOKEN_EXPIRY = 3600;
 
@@ -86,30 +89,95 @@ export const authService = {
     return Date.now() > expiry;
   },
 
-  // Validate token with Google API
+  // Validate token with backend (which validates with Google)
   validateToken: async (token: string): Promise<boolean> => {
     try {
-      const response = await fetch(
-        `https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${token}`
-      );
+      const response = await fetch(`${API_URL}/api/auth/validate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ accessToken: token }),
+      });
 
       if (!response.ok) {
         return false;
       }
 
       const data = await response.json();
-      // Check if token is valid and not expired
-      // Google returns 'error' field if token is invalid
-      return !data.error && data.aud === import.meta.env.VITE_GOOGLE_CLIENT_ID;
+      return data.valid === true;
     } catch (error) {
       console.error("Token validation error:", error);
       return false;
     }
   },
 
-  // Clear authentication data
-  clearAuth: () => {
+  // Login with backend (sends token to backend, gets session cookie)
+  loginWithBackend: async (accessToken: string): Promise<User | null> => {
     try {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ accessToken }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: "Login failed" }));
+        throw new Error(error.error || "Login failed");
+      }
+
+      const data = await response.json();
+      return data.user || null;
+    } catch (error) {
+      console.error("Backend login error:", error);
+      throw error;
+    }
+  },
+
+  // Get current user from backend session
+  getCurrentUser: async (): Promise<User | null> => {
+    try {
+      const response = await fetch(`${API_URL}/api/auth/me`, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        return null;
+      }
+
+      const data = await response.json();
+      return data.user || null;
+    } catch (error) {
+      console.error("Get current user error:", error);
+      return null;
+    }
+  },
+
+  // Logout from backend
+  logoutFromBackend: async (): Promise<void> => {
+    try {
+      await fetch(`${API_URL}/api/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("Backend logout error:", error);
+      // Continue with local logout even if backend call fails
+    }
+  },
+
+  // Clear authentication data
+  clearAuth: async () => {
+    try {
+      // Logout from backend first
+      await authService.logoutFromBackend();
+
+      // Then clear local storage
       localStorage.removeItem(USER_STORAGE_KEY);
       localStorage.removeItem(TOKEN_STORAGE_KEY);
       localStorage.removeItem(TOKEN_EXPIRY_KEY);
@@ -117,6 +185,16 @@ export const authService = {
       localStorage.removeItem(SESSION_LAST_ACTIVITY_KEY);
     } catch (error) {
       console.error("Failed to clear auth:", error);
+      // Still clear local storage even if backend call fails
+      try {
+        localStorage.removeItem(USER_STORAGE_KEY);
+        localStorage.removeItem(TOKEN_STORAGE_KEY);
+        localStorage.removeItem(TOKEN_EXPIRY_KEY);
+        localStorage.removeItem(SESSION_PREFERENCES_KEY);
+        localStorage.removeItem(SESSION_LAST_ACTIVITY_KEY);
+      } catch (e) {
+        // Ignore
+      }
     }
   },
 

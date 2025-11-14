@@ -9,7 +9,6 @@ import { Checkbox } from "@/components/ui/form/checkbox";
 import { Button } from "@/components/ui/interactive/button";
 import { useAuth } from "@/hooks/useAuth";
 import { authService, DEFAULT_SESSION_TIMEOUT } from "@/services/auth";
-import { User } from "@/types/auth";
 import { useGoogleLogin } from "@react-oauth/google";
 import { Plane } from "lucide-react";
 import { useState } from "react";
@@ -26,29 +25,14 @@ const Login = () => {
     onSuccess: async (tokenResponse) => {
       setIsLoading(true);
       try {
-        // Fetch user info from Google
-        const userInfoResponse = await fetch(
-          "https://www.googleapis.com/oauth2/v3/userinfo",
-          {
-            headers: {
-              Authorization: `Bearer ${tokenResponse.access_token}`,
-            },
-          }
+        // Send token to backend for validation and session creation
+        const user = await authService.loginWithBackend(
+          tokenResponse.access_token
         );
 
-        if (!userInfoResponse.ok) {
-          throw new Error("Failed to fetch user info");
+        if (!user) {
+          throw new Error("Failed to login");
         }
-
-        const userInfo = await userInfoResponse.json();
-
-        // Create user object
-        const user: User = {
-          id: userInfo.sub || userInfo.id,
-          email: userInfo.email,
-          name: userInfo.name,
-          picture: userInfo.picture,
-        };
 
         // Get token expiration from token response (if available)
         // Google OAuth tokens typically expire in 1 hour (3600 seconds)
@@ -60,7 +44,8 @@ const Login = () => {
           sessionTimeout: DEFAULT_SESSION_TIMEOUT,
         });
 
-        // Save user and token with expiration
+        // Save user and token locally (for Google API calls if needed)
+        // Backend handles session via httpOnly cookies
         login(user, tokenResponse.access_token, expiresIn);
 
         toast.success("Successfully logged in!");
@@ -69,7 +54,11 @@ const Login = () => {
         }, 500);
       } catch (error) {
         console.error("Login error:", error);
-        toast.error("Failed to login. Please try again.");
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Failed to login. Please try again.";
+        toast.error(errorMessage);
         setIsLoading(false);
       }
     },

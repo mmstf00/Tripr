@@ -16,10 +16,24 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load user from storage on mount with token validation
+  // Load user from backend session on mount
   useEffect(() => {
     const loadUser = async () => {
       try {
+        // First, try to get user from backend session (httpOnly cookie)
+        const backendUser = await authService.getCurrentUser();
+
+        if (backendUser) {
+          // Backend session is valid, use backend user data
+          setUser(backendUser);
+          // Also save locally for quick access
+          authService.saveUser(backendUser);
+          authService.updateLastActivity();
+          setIsLoading(false);
+          return;
+        }
+
+        // Fallback: Check local storage (for backward compatibility during migration)
         const savedUser = authService.getUser();
         const token = authService.getToken();
 
@@ -31,7 +45,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         // Check if token is expired
         if (authService.isTokenExpired()) {
           console.log("Token expired, clearing auth");
-          authService.clearAuth();
+          await authService.clearAuth();
           setIsLoading(false);
           return;
         }
@@ -39,7 +53,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         // Check if session is expired
         if (authService.isSessionExpired()) {
           console.log("Session expired, clearing auth");
-          authService.clearAuth();
+          await authService.clearAuth();
           setIsLoading(false);
           return;
         }
@@ -47,20 +61,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         // Update last activity on successful load
         authService.updateLastActivity();
 
-        // Validate token with Google (optional but recommended)
-        // This ensures the token is still valid on the server side
+        // Validate token with backend
         const isValid = await authService.validateToken(token);
 
         if (isValid) {
           setUser(savedUser);
         } else {
           console.log("Token validation failed, clearing auth");
-          authService.clearAuth();
+          await authService.clearAuth();
         }
       } catch (error) {
         console.error("Failed to load user:", error);
         // On error, clear potentially corrupted auth data
-        authService.clearAuth();
+        await authService.clearAuth();
       } finally {
         setIsLoading(false);
       }
@@ -104,8 +117,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setUser(userData);
   };
 
-  const logout = () => {
-    authService.clearAuth();
+  const logout = async () => {
+    await authService.clearAuth();
     setUser(null);
   };
 

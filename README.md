@@ -15,6 +15,8 @@ A mobile-first travel planning application built with React, TypeScript, and Cap
 
 ## Tech Stack
 
+### Frontend
+
 - **Frontend Framework**: React 18.3 + TypeScript
 - **Build Tool**: Vite 7.2
 - **Styling**: Tailwind CSS with custom theming
@@ -27,10 +29,17 @@ A mobile-first travel planning application built with React, TypeScript, and Cap
 - **Notifications**: Sonner (Toast notifications)
 - **Code Quality**: ESLint with TypeScript support
 
+### Backend
+
+- **Server**: Express.js with TypeScript
+- **Authentication**: Google OAuth with httpOnly cookies
+- **Session Management**: Server-side session management
+- **Database**: In-memory (can be replaced with PostgreSQL/MongoDB)
+
 ## Project Structure
 
 ```
-├── src/
+├── src/                    # Frontend source code
 │   ├── pages/              # Route pages (Landing, Login, Swipe, Results, etc.)
 │   ├── components/         # Reusable React components
 │   │   ├── ui/            # Radix UI component library
@@ -41,7 +50,8 @@ A mobile-first travel planning application built with React, TypeScript, and Cap
 │   ├── contexts/           # React contexts
 │   │   └── AuthContext.tsx    # Authentication context
 │   ├── services/          # Service modules
-│   │   └── auth.ts           # Authentication service
+│   │   ├── auth.ts           # Authentication service
+│   │   └── api.ts            # API client
 │   ├── types/             # TypeScript type definitions
 │   │   └── auth.ts           # Authentication types
 │   ├── hooks/             # Custom React hooks
@@ -50,6 +60,21 @@ A mobile-first travel planning application built with React, TypeScript, and Cap
 │   ├── assets/            # Images and other assets
 │   ├── App.tsx            # Main app component
 │   └── main.tsx           # Application entry point
+├── server/                 # Backend server
+│   ├── src/
+│   │   ├── routes/        # API routes
+│   │   │   └── auth.ts    # Authentication routes
+│   │   ├── middleware/    # Express middleware
+│   │   │   └── auth.ts    # Authentication middleware
+│   │   ├── services/      # Business logic
+│   │   │   └── googleAuth.ts  # Google OAuth service
+│   │   ├── db/            # Database layer
+│   │   │   └── database.ts    # Database implementation
+│   │   ├── types/         # TypeScript types
+│   │   │   └── auth.ts    # Authentication types
+│   │   └── index.ts       # Server entry point
+│   ├── package.json
+│   └── tsconfig.json
 ├── ios/                    # iOS native project (Capacitor)
 ├── android/               # Android native project (Capacitor)
 ├── public/                # Static files
@@ -100,13 +125,39 @@ npm install
 
 ```bash
 VITE_GOOGLE_CLIENT_ID=your-google-oauth-client-id-here
+VITE_API_URL=http://localhost:3001
 ```
 
 Replace `your-google-oauth-client-id-here` with your actual Google OAuth Client ID.
 
+5. Set up the backend server:
+
+```bash
+cd server
+npm install
+cp .env.example .env
+```
+
+Edit `server/.env` and add your Google Client ID:
+
+```bash
+GOOGLE_CLIENT_ID=your-google-oauth-client-id-here
+FRONTEND_URL=http://localhost:8080
+PORT=3001
+```
+
 ### Development
 
-Start the development server:
+1. Start the backend server (in a separate terminal):
+
+```bash
+cd server
+npm run dev
+```
+
+The backend will run on `http://localhost:3001`
+
+2. Start the frontend development server:
 
 ```bash
 bun dev
@@ -222,10 +273,12 @@ Native platform settings are configured in `capacitor.config.ts`. Platform-speci
 ## Environment
 
 - **Node.js Alias**: Path resolution uses `@` to reference the `src/` directory
-- **Port**: Development server runs on port 8080
+- **Frontend Port**: Development server runs on port 8080
+- **Backend Port**: Backend server runs on port 3001
 - **Host**: Development server listens on `::`
 - **Environment Variables**:
   - `VITE_GOOGLE_CLIENT_ID`: Your Google OAuth 2.0 Client ID (required for authentication)
+  - `VITE_API_URL`: Backend API URL (defaults to `http://localhost:3001`)
 
 ## Browser Support
 

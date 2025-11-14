@@ -10,46 +10,43 @@ class ApiClient {
   private baseURL: string;
 
   constructor(baseURL: string = "") {
-    this.baseURL = baseURL;
+    // Use environment variable or default to localhost backend
+    this.baseURL = baseURL || import.meta.env.VITE_API_URL || "http://localhost:3001";
   }
 
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const token = authService.getToken();
-
-    // Check if token is expired before making request
-    if (token && authService.isTokenExpired()) {
-      console.log("Token expired, clearing auth");
-      authService.clearAuth();
-      // Redirect to login if we're not already there
-      if (window.location.pathname !== "/login") {
-        window.location.href = "/login";
-      }
-      throw new Error("Token expired. Please log in again.");
-    }
-
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       ...(options.headers as Record<string, string>),
     };
 
-    // Add authorization header if token exists
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
-
     try {
       const response = await fetch(`${this.baseURL}${endpoint}`, {
         ...options,
         headers,
+        // Include credentials to send cookies (httpOnly cookies)
+        credentials: "include",
       });
 
       // Handle authentication errors
       if (response.status === 401 || response.status === 403) {
         console.log("Unauthorized response, clearing auth");
-        authService.clearAuth();
+
+        // Call backend logout to clear server-side session first
+        try {
+          await fetch(`${this.baseURL}/api/auth/logout`, {
+            method: "POST",
+            credentials: "include",
+          });
+        } catch (e) {
+          // Ignore logout errors
+        }
+
+        // Clear local auth state
+        await authService.clearAuth();
 
         // Redirect to login if we're not already there
         if (window.location.pathname !== "/login") {
