@@ -1,0 +1,20 @@
+# Docker-slim configuration for further image optimization
+# Run: docker-slim build --target tripr:latest
+
+target: tripr:latest
+continue-after: probe
+http-probe: true
+http-probe-cmd: GET /
+http-probe-retry-count: 3
+http-probe-retry-wait: 2
+remove-file-patterns:
+  - '*.md'
+  - '*.txt'
+  - '*.example'
+  - '.git*'
+  - 'node_modules'
+  - '*.test.js'
+  - '*.test.ts'
+  - '*.spec.js'
+  - '*.spec.ts'
+

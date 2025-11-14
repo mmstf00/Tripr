@@ -1,0 +1,69 @@
+# Dependencies
+node_modules
+npm-debug.log
+yarn-error.log
+bun.lockb
+
+# Build outputs
+dist
+build
+.next
+out
+
+# Development files
+.env.local
+.env.development
+.env.test
+*.log
+
+# IDE and editor files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+*.md
+docs
+
+# Testing
+coverage
+.nyc_output
+*.test.js
+*.test.ts
+*.test.tsx
+*.spec.js
+*.spec.ts
+*.spec.tsx
+
+# Mobile builds (Capacitor)
+android
+ios
+.capacitor
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.travis.yml
+.circleci
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Misc
+.eslintcache
+.cache
+.temp
+tmp
+*.tmp
+
