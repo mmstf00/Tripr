@@ -58,6 +58,61 @@ The container includes a health check that verifies the web server is responding
 docker inspect --format='{{.State.Health.Status}}' tripr-app
 ```
 
+## Pushing to Docker Hub
+
+### Step 1: Build the image with Docker Hub tag
+
+Replace `yourusername` with your Docker Hub username:
+
+```bash
+docker build -t yourusername/tripr:latest \
+  --build-arg BUILD_VERSION=latest \
+  --build-arg BUILD_DATE=$(Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ") \
+  .
+```
+
+Or for PowerShell (Windows):
+
+```powershell
+$buildDate = Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ"
+docker build -t yourusername/tripr:latest `
+  --build-arg BUILD_VERSION=latest `
+  --build-arg BUILD_DATE=$buildDate `
+  .
+```
+
+### Step 2: Login to Docker Hub
+
+```bash
+docker login
+```
+
+Enter your Docker Hub username and password (or access token).
+
+### Step 3: Push the image
+
+```bash
+docker push yourusername/tripr:latest
+```
+
+### Optional: Tag and push multiple versions
+
+```bash
+# Tag with version number
+docker tag yourusername/tripr:latest yourusername/tripr:v1.0.0
+
+# Push both tags
+docker push yourusername/tripr:latest
+docker push yourusername/tripr:v1.0.0
+```
+
+### Pull and run from Docker Hub
+
+```bash
+docker pull yourusername/tripr:latest
+docker run -p 8081:80 yourusername/tripr:latest
+```
+
 ## Production Deployment
 
 For production, consider:
