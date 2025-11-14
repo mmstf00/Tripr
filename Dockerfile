@@ -17,7 +17,9 @@ COPY . .
 
 # Build the application
 ARG NODE_ENV=production
+ARG VITE_API_URL
 ENV NODE_ENV=${NODE_ENV}
+ENV VITE_API_URL=${VITE_API_URL}
 RUN npm run build
 
 # Stage 2: Production stage with nginx

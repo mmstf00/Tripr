@@ -167,6 +167,32 @@ npm run dev
 
 The application will be available at `http://localhost:8080`
 
+### Docker Deployment
+
+1. **Copy environment file:**
+
+   ```bash
+   cp docker-compose.env.example .env
+   ```
+
+2. **Edit `.env` file** and set your Google OAuth Client ID:
+
+   ```env
+   GOOGLE_CLIENT_ID=your-google-oauth-client-id-here
+   ```
+
+3. **Build and start services:**
+
+   ```bash
+   docker-compose up --build
+   ```
+
+4. **Access the application:**
+   - Frontend: http://localhost:8080
+   - Backend API: http://localhost:3001
+
+See `DOCKER.md` for detailed Docker documentation.
+
 ### Building
 
 Build for production:

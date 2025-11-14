@@ -8,13 +8,15 @@ import authRoutes from "./routes/auth.js";
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = parseInt(process.env.PORT || "3001", 10);
 
 // Middleware
 app.use(
   cors({
     origin: process.env.FRONTEND_URL || "http://localhost:8080",
     credentials: true,
+    // Allow cookies to be sent
+    exposedHeaders: ["Set-Cookie"],
   })
 );
 app.use(express.json());
@@ -37,8 +39,8 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
   res.status(500).json({ error: "Internal server error" });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on http://0.0.0.0:${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
 });
 

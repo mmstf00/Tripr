@@ -7,7 +7,9 @@ const SESSION_PREFERENCES_KEY = "tripr_session_preferences";
 const SESSION_LAST_ACTIVITY_KEY = "tripr_session_last_activity";
 
 // Backend API URL
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+// In Docker, use relative path (nginx proxies /api to backend)
+// In development, use full URL or relative path
+const API_URL = import.meta.env.VITE_API_URL || "";
 
 // Google OAuth tokens typically expire after 1 hour (3600 seconds)
 const DEFAULT_TOKEN_EXPIRY = 3600;

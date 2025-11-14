@@ -1,19 +1,58 @@
 version: '3.8'
 
 services:
-  tripr:
+  # Backend API Server
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+      args:
+        BUILD_VERSION: ${BUILD_VERSION:-latest}
+        BUILD_DATE: ${BUILD_DATE}
+    container_name: tripr-backend
+    ports:
+      - "${BACKEND_PORT:-3001}:3001"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=3001
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:8080}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    labels:
+      - "com.tripr.description=Tripr Backend API Server"
+      - "com.tripr.version=${BUILD_VERSION:-1.0.0}"
+    networks:
+      - tripr-network
+
+  # Frontend Application
+  frontend:
     build:
       context: .
       dockerfile: Dockerfile
       args:
         BUILD_VERSION: ${BUILD_VERSION:-latest}
         BUILD_DATE: ${BUILD_DATE}
-    container_name: tripr-app
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3001}
+    container_name: tripr-frontend
     ports:
-      - "8081:80"
+      - "${FRONTEND_PORT:-8080}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
     restart: unless-stopped
-    # Healthcheck is defined in Dockerfile, no need to duplicate here
     labels:
       - "com.tripr.description=Tripr Travel Planning App"
       - "com.tripr.version=${BUILD_VERSION:-1.0.0}"
+    networks:
+      - tripr-network
+
+networks:
+  tripr-network:
+    driver: bridge
 

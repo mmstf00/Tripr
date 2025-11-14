@@ -10,8 +10,9 @@ class ApiClient {
   private baseURL: string;
 
   constructor(baseURL: string = "") {
-    // Use environment variable or default to localhost backend
-    this.baseURL = baseURL || import.meta.env.VITE_API_URL || "http://localhost:3001";
+    // Use environment variable or default to relative path (for nginx proxy)
+    // In Docker, nginx proxies /api to backend, so use relative path
+    this.baseURL = baseURL || import.meta.env.VITE_API_URL || "";
   }
 
   private async request<T>(
