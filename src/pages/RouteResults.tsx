@@ -15,12 +15,15 @@ import {
 } from "@/utils/routeOptimization";
 import {
   ArrowRight,
+  Car,
   Clock,
   DollarSign,
+  Footprints,
   MapPin,
   Navigation,
   RefreshCw,
   Sparkles,
+  Train,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -38,6 +41,10 @@ interface SwipeItem {
     coordinates: { lat: number; lng: number };
     estimatedDuration: number;
   };
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
 }
 
 const RouteResults = () => {
@@ -50,6 +57,9 @@ const RouteResults = () => {
   const [likedItems, setLikedItems] = useState<SwipeItem[]>(
     location.state?.likedItems || []
   );
+
+  // Debug: Log liked items to verify coordinates
+  useEffect(() => {}, [likedItems]);
   const [optimizedRoute, setOptimizedRoute] = useState<SwipeItem[]>([]);
   const [routeMetrics, setRouteMetrics] = useState<RouteMetrics | null>(null);
 
@@ -60,39 +70,67 @@ const RouteResults = () => {
     }
 
     // Convert SwipeItems to Places for route optimization
-    const placesForOptimization = likedItems.map((item) => ({
-      id: item.id,
-      name: item.city.name,
-      description: item.description,
-      image: item.image,
-      tags: item.tags,
-      coordinates: item.city.coordinates,
-      estimatedDuration: item.city.estimatedDuration,
-    }));
+    // Use highlight coordinates, not city coordinates
+    const placesForOptimization = likedItems.map((item) => {
+      // Use highlight coordinates (from item.coordinates)
+      const coords = item.coordinates;
+      if (!coords) {
+        console.error(
+          `Item ${item.id} (${item.title}) missing highlight coordinates, using city coordinates`
+        );
+      }
+      return {
+        id: item.id,
+        name: item.city.name,
+        description: item.description,
+        image: item.image,
+        tags: item.tags,
+        coordinates: coords || item.city.coordinates, // Use highlight coordinates, fallback to city
+        estimatedDuration: item.city.estimatedDuration,
+      };
+    });
+
+    if (placesForOptimization.length === 0) {
+      console.error("No valid places with coordinates found");
+      return;
+    }
 
     const optimized = optimizeRoute(placesForOptimization);
 
     // Map optimized places back to SwipeItems
+    // IMPORTANT: Use coordinates from the optimized place, not the original item
     const optimizedItems = optimized.map((place) => {
       const originalItem = likedItems.find(
         (item) => item.id === place.id || item.city.id === place.id
       );
-      return (
-        originalItem || {
+
+      // Use coordinates from the optimized place (which has highlight coordinates)
+      const finalCoords = place.coordinates;
+
+      if (originalItem) {
+        // Preserve original item data but use optimized place coordinates
+        return {
+          ...originalItem,
+          coordinates: finalCoords, // Use coordinates from optimized place
+        };
+      }
+
+      // Fallback if original item not found
+      return {
+        id: place.id,
+        title: place.name,
+        description: place.description,
+        image: place.image,
+        tags: place.tags,
+        countryLabel: `${place.name}, ${country.name}`,
+        city: {
           id: place.id,
-          title: place.name,
-          description: place.description,
-          image: place.image,
-          tags: place.tags,
-          countryLabel: `${place.name}, ${country.name}`,
-          city: {
-            id: place.id,
-            name: place.name,
-            coordinates: place.coordinates,
-            estimatedDuration: place.estimatedDuration,
-          },
-        }
-      );
+          name: place.name,
+          coordinates: place.coordinates,
+          estimatedDuration: place.estimatedDuration,
+        },
+        coordinates: finalCoords, // Use highlight coordinates from optimized place
+      };
     });
 
     const metrics = calculateRouteMetrics(optimized);
@@ -260,32 +298,95 @@ const RouteResults = () => {
                       </div>
                     </div>
 
-                    {index < optimizedRoute.length - 1 && (
-                      <div className="ml-5 sm:ml-6 my-2 flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                        <div className="w-0.5 h-6 sm:h-8 bg-border" />
-                        <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                        <span className="break-words">
-                          {Math.round(
-                            calculateDistance(
-                              item.city.coordinates.lat,
-                              item.city.coordinates.lng,
-                              optimizedRoute[index + 1].city.coordinates.lat,
-                              optimizedRoute[index + 1].city.coordinates.lng
-                            )
-                          )}{" "}
-                          km • ~
-                          {Math.round(
-                            calculateDistance(
-                              item.city.coordinates.lat,
-                              item.city.coordinates.lng,
-                              optimizedRoute[index + 1].city.coordinates.lat,
-                              optimizedRoute[index + 1].city.coordinates.lng
-                            ) / 50
-                          )}{" "}
-                          hour travel
-                        </span>
-                      </div>
-                    )}
+                    {index < optimizedRoute.length - 1 &&
+                      (() => {
+                        // Prioritize highlight coordinates
+                        const currentCoords = item.coordinates;
+                        const nextCoords =
+                          optimizedRoute[index + 1].coordinates;
+
+                        if (!currentCoords || !nextCoords) {
+                          console.warn("Missing coordinates:", {
+                            current: currentCoords,
+                            next: nextCoords,
+                            itemId: item.id,
+                            nextId: optimizedRoute[index + 1].id,
+                          });
+                          return null;
+                        }
+
+                        const distance = calculateDistance(
+                          currentCoords.lat,
+                          currentCoords.lng,
+                          nextCoords.lat,
+                          nextCoords.lng
+                        );
+
+                        // If distance is 0, the highlights might have the same coordinates
+                        if (distance === 0) {
+                          console.warn("Distance is 0 between highlights:", {
+                            from: item.title,
+                            to: optimizedRoute[index + 1].title,
+                            coords1: currentCoords,
+                            coords2: nextCoords,
+                          });
+                        }
+
+                        // Calculate travel times for different modes
+                        // Car: ~50 km/h, Public transport: ~30 km/h, Walking: ~5 km/h
+                        const carSpeed = 50; // km/h
+                        const publicTransportSpeed = 30; // km/h
+                        const walkingSpeed = 5; // km/h
+
+                        const formatTime = (hours: number): string => {
+                          const minutes = hours * 60;
+                          if (minutes < 1) {
+                            return "< 1 min";
+                          } else if (minutes < 60) {
+                            return `${Math.round(minutes)} min`;
+                          } else {
+                            const h = Math.floor(hours);
+                            const m = Math.round((hours - h) * 60);
+                            if (m > 0) {
+                              return `${h}h ${m}min`;
+                            } else {
+                              return `${h} hour${h > 1 ? "s" : ""}`;
+                            }
+                          }
+                        };
+
+                        const carTime = formatTime(distance / carSpeed);
+                        const publicTransportTime = formatTime(
+                          distance / publicTransportSpeed
+                        );
+                        const walkingTime = formatTime(distance / walkingSpeed);
+
+                        return (
+                          <div className="ml-5 sm:ml-6 my-2">
+                            <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                              <div className="w-0.5 h-6 sm:h-8 bg-border" />
+                              <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                              <span>
+                                {distance < 1
+                                  ? `${Math.round(distance * 1000)} m`
+                                  : `${distance.toFixed(1)} km`}
+                              </span>
+                              {distance > 0 && (
+                                <span className="flex items-center gap-1.5 text-muted-foreground/70">
+                                  <Car className="w-4 h-4" />
+                                  <span>{carTime}</span>
+                                  <span>•</span>
+                                  <Train className="w-4 h-4" />
+                                  <span>{publicTransportTime}</span>
+                                  <span>•</span>
+                                  <Footprints className="w-4 h-4" />
+                                  <span>{walkingTime}</span>
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })()}
                   </div>
                 ))}
               </div>

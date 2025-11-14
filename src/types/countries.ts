@@ -1,6 +1,10 @@
 export interface Highlight {
   name: string;
   image: string;
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
 }
 
 export interface Place {

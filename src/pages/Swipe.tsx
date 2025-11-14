@@ -19,6 +19,10 @@ interface SwipeItem {
   tags: string[];
   countryLabel: string;
   city: Place;
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
 }
 
 const Swipe = () => {
@@ -104,6 +108,7 @@ const Swipe = () => {
           tags: city.tags,
           countryLabel: `${city.name}, ${selectedCountry.name}`,
           city,
+          coordinates: highlight.coordinates,
         }));
       }
 
@@ -116,6 +121,7 @@ const Swipe = () => {
           tags: city.tags,
           countryLabel: `${city.name}, ${selectedCountry.name}`,
           city,
+          coordinates: city.coordinates,
         },
       ];
     });
