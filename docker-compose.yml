@@ -46,6 +46,10 @@ services:
       backend:
         condition: service_healthy
     restart: unless-stopped
+    # Add DNS resolver for nginx
+    dns:
+      - 127.0.0.11
+      - 8.8.8.8
     labels:
       - "com.tripr.description=Tripr Travel Planning App"
       - "com.tripr.version=${BUILD_VERSION:-1.0.0}"
