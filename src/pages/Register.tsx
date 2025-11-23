@@ -5,6 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/data/card";
+import { Checkbox } from "@/components/ui/form/checkbox";
 import { Button } from "@/components/ui/interactive/button";
 import { useAuth } from "@/hooks/useAuth";
 import { authService, DEFAULT_SESSION_TIMEOUT } from "@/services/auth";
@@ -12,12 +13,12 @@ import { mobileAuthService } from "@/services/mobileAuth";
 import { useGoogleLogin } from "@react-oauth/google";
 import { Plane } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
-const Login = () => {
+const Register = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -37,21 +38,21 @@ const Login = () => {
     }
   }, []);
 
-  // Handle native mobile Google Sign-In
-  const handleNativeGoogleSignIn = async () => {
+  // Handle native mobile Google Sign-Up
+  const handleNativeGoogleSignUp = async () => {
     setIsLoading(true);
     try {
       const result = await mobileAuthService.signInWithGoogle();
 
       if (!result) {
-        throw new Error("Failed to sign in with Google");
+        throw new Error("Failed to sign up with Google");
       }
 
-      // Send token to backend for validation and session creation
-      const user = await authService.loginWithBackend(result.accessToken);
+      // Send token to backend for validation and user creation
+      const user = await authService.registerWithBackend(result.accessToken);
 
       if (!user) {
-        throw new Error("Failed to create backend session");
+        throw new Error("Failed to create user account");
       }
 
       // Save session preferences
@@ -62,33 +63,33 @@ const Login = () => {
       // Save user and token locally
       login(user, result.accessToken);
 
-      toast.success("Successfully logged in!");
+      toast.success("Successfully registered!");
       setTimeout(() => {
         navigate("/");
       }, 500);
     } catch (error) {
-      console.error("Native login error:", error);
+      console.error("Native registration error:", error);
       const errorMessage =
         error instanceof Error
           ? error.message
-          : "Failed to login. Please try again.";
+          : "Failed to register. Please try again.";
       toast.error(errorMessage);
       setIsLoading(false);
     }
   };
 
-  // Handle web-based Google Sign-In
-  const handleGoogleLogin = useGoogleLogin({
+  // Handle web-based Google Sign-Up
+  const handleGoogleSignUp = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       setIsLoading(true);
       try {
-        // Send token to backend for validation and session creation
-        const user = await authService.loginWithBackend(
+        // Send token to backend for validation and user creation
+        const user = await authService.registerWithBackend(
           tokenResponse.access_token
         );
 
         if (!user) {
-          throw new Error("Failed to login");
+          throw new Error("Failed to register");
         }
 
         // Get token expiration from token response (if available)
@@ -104,22 +105,22 @@ const Login = () => {
         // Backend handles session via httpOnly cookies
         login(user, tokenResponse.access_token, expiresIn);
 
-        toast.success("Successfully logged in!");
+        toast.success("Successfully registered!");
         setTimeout(() => {
           navigate("/");
         }, 500);
       } catch (error) {
-        console.error("Login error:", error);
+        console.error("Registration error:", error);
         const errorMessage =
           error instanceof Error
             ? error.message
-            : "Failed to login. Please try again.";
+            : "Failed to register. Please try again.";
         toast.error(errorMessage);
         setIsLoading(false);
       }
     },
     onError: () => {
-      toast.error("Login failed. Please try again.");
+      toast.error("Registration failed. Please try again.");
       setIsLoading(false);
     },
   });
@@ -139,10 +140,10 @@ const Login = () => {
             <Plane className="w-8 h-8 text-white" />
           </div>
           <CardTitle className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Welcome to Tripr
+            Create your Tripr account
           </CardTitle>
           <CardDescription className="text-base">
-            Sign in with your Google account to start planning your next
+            Sign up with your Google account to start planning your next
             adventure
           </CardDescription>
         </CardHeader>
@@ -150,8 +151,8 @@ const Login = () => {
           <Button
             onClick={() =>
               isNativePlatform
-                ? handleNativeGoogleSignIn()
-                : handleGoogleLogin()
+                ? handleNativeGoogleSignUp()
+                : handleGoogleSignUp()
             }
             disabled={isLoading || clientIdError}
             className="w-full h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-200 hover:border-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100 dark:border-gray-600"
@@ -161,7 +162,7 @@ const Login = () => {
             {isLoading ? (
               <>
                 <div className="mr-2 h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600"></div>
-                Signing in...
+                Signing up...
               </>
             ) : (
               <>
@@ -187,10 +188,11 @@ const Login = () => {
                     fill="#EA4335"
                   />
                 </svg>
-                Continue with Google
+                Sign up with Google
               </>
             )}
           </Button>
+
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t border-gray-200 dark:border-gray-700"></span>
@@ -201,6 +203,9 @@ const Login = () => {
               </span>
             </div>
           </div>
+          <Button asChild variant="link" className="w-full text-base">
+            <Link to="/login">Already have an account? Log in</Link>
+          </Button>
           <p className="text-xs text-center text-muted-foreground leading-relaxed">
             By continuing, you agree to Tripr's{" "}
             <a
@@ -215,15 +220,6 @@ const Login = () => {
               className="underline hover:text-primary transition-colors"
             >
               Privacy Policy
-            </a>
-          </p>
-          <p className="text-xs text-center text-muted-foreground leading-relaxed">
-            Don't have an account?{" "}
-            <a
-              href="/register"
-              className="underline hover:text-primary transition-colors font-semibold"
-            >
-              Sign Up
             </a>
           </p>
         </CardContent>
@@ -255,4 +251,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Register;

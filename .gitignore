@@ -52,8 +52,7 @@ dist/
 
 # Environment files
 .env
-.env.local
-.env.*.local
+.env.*
 
 # OS specific
 Thumbs.db

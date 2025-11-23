@@ -1,4 +1,4 @@
-import { GoogleTokenInfo } from "../types/auth.js";
+import { GoogleTokenInfo } from "../types/auth";
 
 const GOOGLE_TOKENINFO_URL = "https://www.googleapis.com/oauth2/v3/tokeninfo";
 
@@ -94,6 +94,46 @@ export async function fetchGoogleUserInfo(
     };
   } catch (error) {
     console.error("Error fetching Google user info:", error);
+    return null;
+  }
+}
+
+/**
+ * Validate Firebase ID token (from mobile apps)
+ * Firebase tokens are JWT tokens that can be validated via Google's tokeninfo endpoint
+ */
+export async function validateFirebaseToken(
+  idToken: string
+): Promise<GoogleTokenInfo | null> {
+  try {
+    // Firebase ID tokens are JWTs that can be decoded and validated
+    // They follow the same format as Google OAuth tokens
+    const response = await fetch(
+      `${GOOGLE_TOKENINFO_URL}?id_token=${idToken}`
+    );
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const tokenInfo = (await response.json()) as GoogleTokenInfoResponse;
+
+    // Check if token is valid
+    if (tokenInfo.error || !tokenInfo.sub || !tokenInfo.email) {
+      return null;
+    }
+
+    return {
+      sub: tokenInfo.sub,
+      email: tokenInfo.email,
+      name: tokenInfo.name || "",
+      picture: tokenInfo.picture,
+      aud: tokenInfo.aud || "",
+      exp: tokenInfo.exp,
+      iat: tokenInfo.iat,
+    };
+  } catch (error) {
+    console.error("Error validating Firebase token:", error);
     return null;
   }
 }

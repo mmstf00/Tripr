@@ -11,14 +11,27 @@ const config: CapacitorConfig = {
       keystoreAlias: 'androiddebugkey',
       keystoreAliasPassword: 'android',
       releaseType: 'APK'
-    }
+    },
+    webContentsDebuggingEnabled: true,
+  },
+  server: {
+    cleartext: true,
+    // Allow mixed content on development server
+    androidScheme: 'http',
+    hostname: '192.168.0.212',
   },
   ios: {
     buildOptions: {
       signingStyle: 'automatic',
       exportMethod: 'development'
     }
-  }
+  },
+  plugins: {
+    FirebaseAuthentication: {
+      skipNativeAuth: false,
+      providers: ["google.com"],
+    },
+  },
 };
 
 export default config;

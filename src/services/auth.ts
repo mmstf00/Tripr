@@ -8,7 +8,7 @@ const SESSION_LAST_ACTIVITY_KEY = "tripr_session_last_activity";
 
 // Backend API URL
 // In Docker, use relative path (nginx proxies /api to backend)
-// In development, use full URL or relative path
+// In development, use full URL from environment variable
 const API_URL = import.meta.env.VITE_API_URL || "";
 
 // Google OAuth tokens typically expire after 1 hour (3600 seconds)
@@ -21,7 +21,6 @@ export const DEFAULT_SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes in millisec
 export const REMEMBER_ME_SESSION_TIMEOUT = Number.MAX_SAFE_INTEGER; // Effectively forever
 
 export interface SessionPreferences {
-  rememberMe: boolean;
   sessionTimeout: number; // in milliseconds
 }
 
@@ -140,6 +139,34 @@ export const authService = {
     }
   },
 
+  // Register with backend (sends token to backend, creates user and gets session cookie)
+  registerWithBackend: async (accessToken: string): Promise<User | null> => {
+    try {
+      const response = await fetch(`${API_URL}/api/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ accessToken }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: "Registration failed" }));
+        if (response.status === 409) {
+          throw new Error(error.error || "User with this email already exists.");
+        }
+        throw new Error(error.error || "Registration failed");
+      }
+
+      const data = await response.json();
+      return data.user || null;
+    } catch (error) {
+      console.error("Backend registration error:", error);
+      throw error;
+    }
+  },
+
   // Get current user from backend session
   getCurrentUser: async (): Promise<User | null> => {
     try {
@@ -223,9 +250,11 @@ export const authService = {
   },
 
   // Session Management
-  saveSessionPreferences: (preferences: SessionPreferences) => {
+  saveSessionPreferences: (preferences: Omit<SessionPreferences, 'rememberMe'>) => {
     try {
-      localStorage.setItem(SESSION_PREFERENCES_KEY, JSON.stringify(preferences));
+      localStorage.setItem(SESSION_PREFERENCES_KEY, JSON.stringify({
+        sessionTimeout: REMEMBER_ME_SESSION_TIMEOUT, // Always unlimited
+      }));
       // Update last activity timestamp
       authService.updateLastActivity();
     } catch (error) {
@@ -244,8 +273,7 @@ export const authService = {
     }
     // Default preferences
     return {
-      rememberMe: false,
-      sessionTimeout: DEFAULT_SESSION_TIMEOUT,
+      sessionTimeout: REMEMBER_ME_SESSION_TIMEOUT,
     };
   },
 
@@ -268,22 +296,10 @@ export const authService = {
   },
 
   isSessionExpired: (): boolean => {
-    const preferences = authService.getSessionPreferences();
-
-    // If "Remember Me" is enabled, session never expires
-    if (preferences.rememberMe) {
-      return false;
-    }
-
-    const lastActivity = authService.getLastActivity();
-
-    if (!lastActivity) {
-      // No activity recorded, assume session is valid if we have a token
-      return false;
-    }
-
-    const timeSinceLastActivity = Date.now() - lastActivity;
-    return timeSinceLastActivity > preferences.sessionTimeout;
+    // With "Remember Me" removed and sessions effectively unlimited by default,
+    // session expiration is now primarily governed by token expiry or explicit logout.
+    // Therefore, we assume the session itself does not expire due to inactivity.
+    return false;
   },
 
   // Clear session data (but keep user/token if rememberMe is true)

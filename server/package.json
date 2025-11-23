@@ -3,24 +3,33 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch --inspect src/index.ts",
+    "dev:android": "cross-env DOTENV_CONFIG_PATH=.env.android tsx watch --inspect src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
-    "express": "^4.21.1",
+    "@prisma/adapter-pg": "^7.0.0",
+    "@prisma/client": "7.0.0",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.7"
+    "dotenv": "^16.6.1",
+    "express": "^4.21.1",
+    "https": "^1.0.0",
+    "pg": "^8.16.3",
+    "selfsigned": "^4.0.0",
+    "spdy": "^4.0.2"
   },
   "devDependencies": {
-    "@types/express": "^5.0.0",
     "@types/cookie-parser": "^1.4.7",
     "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
     "@types/node": "^22.16.5",
+    "cross-env": "^7.0.3",
+    "prisma": "7.0.0",
     "tsx": "^4.19.2",
     "typescript": "^5.8.3"
   }
 }
-

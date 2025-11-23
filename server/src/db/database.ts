@@ -1,66 +1,51 @@
-import { Session, User } from "../types/auth.js";
+import { PrismaPg } from '@prisma/adapter-pg';
+import "dotenv/config";
+import { PrismaClient } from '../../node_modules/prisma/client';
+import { Session, User } from "../types/auth";
 
-// In-memory database (can be replaced with a real database)
+const connectionString = `${process.env.DATABASE_URL}`
+
+const adapter = new PrismaPg({ connectionString })
+const prisma = new PrismaClient({ adapter });
+
 class Database {
-  private users: Map<string, User> = new Map();
-  private sessions: Map<string, Session> = new Map();
 
   // User operations
   async createUser(userData: Omit<User, "createdAt" | "updatedAt">): Promise<User> {
-    const user: User = {
-      ...userData,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.users.set(user.id, user);
-    return user;
+    return prisma.user.create({ data: userData });
   }
 
   async getUserById(id: string): Promise<User | null> {
-    return this.users.get(id) || null;
+    return prisma.user.findUnique({ where: { id } });
   }
 
   async getUserByEmail(email: string): Promise<User | null> {
-    for (const user of this.users.values()) {
-      if (user.email === email) {
-        return user;
-      }
-    }
-    return null;
+    return prisma.user.findUnique({ where: { email } });
   }
 
   async updateUser(id: string, updates: Partial<User>): Promise<User | null> {
-    const user = this.users.get(id);
-    if (!user) return null;
-
-    const updated: User = {
-      ...user,
-      ...updates,
-      updatedAt: new Date(),
-    };
-    this.users.set(id, updated);
-    return updated;
+    return prisma.user.update({ where: { id }, data: updates });
   }
 
   // Session operations
   async createSession(sessionId: string, userId: string, expiresAt: Date): Promise<Session> {
-    const session: Session = {
-      sessionId,
-      userId,
-      expiresAt,
-      createdAt: new Date(),
-    };
-    this.sessions.set(sessionId, session);
-    return session;
+    return prisma.session.create({
+      data: {
+        sessionId,
+        userId,
+        expiresAt,
+      },
+    });
   }
 
   async getSession(sessionId: string): Promise<Session | null> {
-    const session = this.sessions.get(sessionId);
+    const session = await prisma.session.findUnique({ where: { sessionId } });
+
     if (!session) return null;
 
     // Check if session is expired
     if (session.expiresAt < new Date()) {
-      this.sessions.delete(sessionId);
+      await this.deleteSession(sessionId);
       return null;
     }
 
@@ -68,19 +53,19 @@ class Database {
   }
 
   async deleteSession(sessionId: string): Promise<boolean> {
-    return this.sessions.delete(sessionId);
+    await prisma.session.delete({ where: { sessionId } });
+    return true;
   }
 
   async deleteExpiredSessions(): Promise<number> {
-    const now = new Date();
-    let deleted = 0;
-    for (const [sessionId, session] of this.sessions.entries()) {
-      if (session.expiresAt < now) {
-        this.sessions.delete(sessionId);
-        deleted++;
-      }
-    }
-    return deleted;
+    const result = await prisma.session.deleteMany({
+      where: {
+        expiresAt: {
+          lt: new Date(),
+        },
+      },
+    });
+    return result.count;
   }
 
   // Cleanup expired sessions periodically

@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1058283120452",
+    "project_id": "tripr-f6338",
+    "storage_bucket": "tripr-f6338.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1058283120452:android:5f9d5fb2ccb0b6f75b1911",
+        "android_client_info": {
+          "package_name": "com.tripr.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1058283120452-eqj7p6fqt3ecrtq7vaj0a1vs2iiip5sa.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tripr.app",
+            "certificate_hash": "13a294c5c31aa816625db640fe76bc03713a4152"
+          }
+        },
+        {
+          "client_id": "1058283120452-tub2po0ra3f5mfvr37v9h4kls5pe4d47.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC97M3YrlNtAEuvdRI8jbaFdaTnLax-kp0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1058283120452-tub2po0ra3f5mfvr37v9h4kls5pe4d47.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

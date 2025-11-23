@@ -1,4 +1,5 @@
 import { authService } from "@/services/auth";
+import { mobileAuthService } from "@/services/mobileAuth";
 import { AuthState, User } from "@/types/auth";
 import { ReactNode, useEffect, useState } from "react";
 import { AuthContext } from "./authContextValue";
@@ -15,6 +16,13 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Initialize mobile auth on mount
+  useEffect(() => {
+    if (mobileAuthService.isNativePlatform()) {
+      mobileAuthService.initializeAuth();
+    }
+  }, []);
 
   // Load user from backend session on mount
   useEffect(() => {
@@ -118,6 +126,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const logout = async () => {
+    // Sign out from mobile auth if on native platform
+    if (mobileAuthService.isNativePlatform()) {
+      await mobileAuthService.signOut();
+    }
     await authService.clearAuth();
     setUser(null);
   };
