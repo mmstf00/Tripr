@@ -277,6 +277,20 @@ npx cap build android
 npx cap run android
 ```
 
+For Demo/Distribution (APK):
+```bash
+npm run build:android  # Build the web assets first
+cd android
+./gradlew assembleRelease
+```
+
+For Google Play Store (AAB): 
+```bash
+npm run build:android  # Build the web assets first
+cd android
+./gradlew bundleRelease
+```
+
 ### Sync Native Changes
 
 After making changes to native code or dependencies:
