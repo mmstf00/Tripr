@@ -12,7 +12,7 @@ const PORT = parseInt(process.env.PORT || "3001", 10);
 
 app.use(cors({
   // TODO: Add these to property files
-  origin: ["http://192.168.0.212", "http://localhost:8080"],
+  origin: process.env.ALLOWED_ORIGINS?.split(',') || ["http://localhost:8080"],
   credentials: true,
 }));
 
@@ -27,8 +27,7 @@ app.get("/health", (_req, res) => {
 // API routes
 app.use("/api/auth", authRoutes);
 
-// Start cleanup interval for expired sessions
-db.startCleanupInterval();
+
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -36,7 +35,17 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
   res.status(500).json({ error: "Internal server error" });
 });
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running on http://192.168.0.212:${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
-});
+
+export { app };
+
+// Only start the server if this file is run directly
+import { fileURLToPath } from 'url';
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  // Start cleanup interval for expired sessions only when running as a long-lived server
+  db.startCleanupInterval();
+
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
+  });
+}

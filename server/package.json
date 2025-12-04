@@ -2,6 +2,9 @@
   "name": "tripr-server",
   "version": "1.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "tsx watch --inspect src/index.ts",
     "dev:android": "cross-env DOTENV_CONFIG_PATH=.env.android tsx watch --inspect src/index.ts",
