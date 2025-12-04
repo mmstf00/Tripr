@@ -10,10 +10,54 @@ dotenv.config();
 const app = express();
 const PORT = parseInt(process.env.PORT || "3001", 10);
 
-// Get allowed origins from environment variable or use default
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(origin => origin.trim()) || ["http://localhost:8080"];
+// Get allowed origins from environment variable and merge with localhost defaults
+// Only localhost URLs are hardcoded, all production URLs should be configured via ALLOWED_ORIGINS env variable
+const defaultOrigins = [
+  "http://localhost:8080"
+];
 
-// Enhanced CORS configuration for all request types and endpoints
+// Merge environment variable origins with defaults
+const envOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(origin => origin.trim()).filter(Boolean) || [];
+const allowedOrigins = [...defaultOrigins, ...envOrigins];
+
+// Custom CORS middleware that handles all requests and endpoints
+// This must come BEFORE the cors package middleware to handle OPTIONS properly
+app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+  const origin = req.headers.origin;
+
+  // Always handle preflight OPTIONS requests first
+  if (req.method === 'OPTIONS') {
+    if (origin && allowedOrigins.includes(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+      res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
+      return res.status(204).end();
+    } else {
+      // Reject preflight from disallowed origin with proper CORS response
+      res.status(403).json({ error: 'CORS policy: Origin not allowed' });
+      return;
+    }
+  }
+
+  // For actual requests, set CORS headers if origin is allowed
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Type, Authorization');
+  } else if (origin) {
+    // Log blocked origins for debugging
+    console.warn(`CORS: Blocked request from origin: ${origin}`);
+  }
+  // If no origin (same-origin or server-to-server), allow it
+
+  next();
+});
+
+// Enhanced CORS configuration using cors package as additional layer
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps, Postman, or same-origin requests)
@@ -25,7 +69,9 @@ app.use(cors({
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      // Don't throw error - just reject to avoid 500 errors
+      // The custom middleware above will handle the response
+      callback(null, false);
     }
   },
   credentials: true,
@@ -35,27 +81,6 @@ app.use(cors({
   preflightContinue: false,
   optionsSuccessStatus: 204,
 }));
-
-// Custom middleware to explicitly allow all requests from allowed origins
-app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
-  const origin = req.headers.origin;
-
-  // If origin is in allowed list, set CORS headers explicitly
-  if (origin && allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
-    res.setHeader('Access-Control-Expose-Headers', 'Content-Type, Authorization');
-
-    // Handle preflight OPTIONS requests
-    if (req.method === 'OPTIONS') {
-      return res.status(204).end();
-    }
-  }
-
-  next();
-});
 
 app.use(express.json());
 app.use(cookieParser());
