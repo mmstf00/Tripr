@@ -1,3 +1,4 @@
+import { firebaseAuth } from "../config/firebase.js";
 import { GoogleTokenInfo } from "../types/auth";
 
 const GOOGLE_TOKENINFO_URL = "https://www.googleapis.com/oauth2/v3/tokeninfo";
@@ -100,41 +101,27 @@ export async function fetchGoogleUserInfo(
 
 /**
  * Validate Firebase ID token (from mobile apps)
- * Firebase tokens are JWT tokens that can be validated via Google's tokeninfo endpoint
+ * Uses Firebase Admin SDK for proper validation
  */
 export async function validateFirebaseToken(
   idToken: string
 ): Promise<GoogleTokenInfo | null> {
   try {
-    // Firebase ID tokens are JWTs that can be decoded and validated
-    // They follow the same format as Google OAuth tokens
-    const response = await fetch(
-      `${GOOGLE_TOKENINFO_URL}?id_token=${idToken}`
-    );
+    // Verify the ID token using Firebase Admin SDK
+    const decodedToken = await firebaseAuth.verifyIdToken(idToken);
 
-    if (!response.ok) {
-      return null;
-    }
-
-    const tokenInfo = (await response.json()) as GoogleTokenInfoResponse;
-
-    // Check if token is valid
-    if (tokenInfo.error || !tokenInfo.sub || !tokenInfo.email) {
-      return null;
-    }
-
+    // Extract user information from the decoded token
     return {
-      sub: tokenInfo.sub,
-      email: tokenInfo.email,
-      name: tokenInfo.name || "",
-      picture: tokenInfo.picture,
-      aud: tokenInfo.aud || "",
-      exp: tokenInfo.exp,
-      iat: tokenInfo.iat,
+      sub: decodedToken.uid,
+      email: decodedToken.email || "",
+      name: decodedToken.name || "",
+      picture: decodedToken.picture || "",
+      aud: decodedToken.aud || "",
+      exp: decodedToken.exp,
+      iat: decodedToken.iat,
     };
   } catch (error) {
     console.error("Error validating Firebase token:", error);
     return null;
   }
 }
-

@@ -262,7 +262,13 @@ Or on your system, find your Android Studio installation path and set it accordi
 
 #### Build and Deploy
 
-Build and deploy for Android:
+Build and deploy for Android (Server + Mobile App):
+
+```bash
+cd server
+npm run build
+npm run dev:android
+```
 
 ```bash
 npx cap add android

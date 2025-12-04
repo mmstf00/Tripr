@@ -25,13 +25,9 @@ export const mobileAuthService = {
   initializeAuth: async () => {
     try {
       if (!Capacitor.isNativePlatform()) {
-        console.log("Not a native platform, skipping mobile auth init");
+        // Not a native platform, skipping mobile auth init
         return;
       }
-
-      console.log("Initializing Firebase Authentication for platform:", Capacitor.getPlatform());
-      // Firebase is already initialized via native configuration
-      console.log("Firebase Authentication ready on", Capacitor.getPlatform());
     } catch (error) {
       console.error("Failed to initialize Firebase Auth:", error);
     }
@@ -44,15 +40,12 @@ export const mobileAuthService = {
   signInWithGoogle: async (): Promise<MobileAuthResponse | null> => {
     try {
       if (!Capacitor.isNativePlatform()) {
-        console.log("Not a native platform, cannot use native Google SignIn");
         return null;
       }
 
       if (!WEB_CLIENT_ID) {
         throw new Error("Web Client ID not configured. Please set VITE_GOOGLE_CLIENT_ID in environment variables.");
       }
-
-      console.log("Attempting Google SignIn via Firebase...");
 
       // Try to sign in with Google
       // The Firebase plugin handles the UI - either showing saved credentials or opening browser
@@ -61,8 +54,6 @@ export const mobileAuthService = {
       if (!result.user) {
         throw new Error("No user data received from Google SignIn");
       }
-
-      console.log("Google SignIn successful, user:", result.user.email);
 
       // Get ID token for backend verification
       const idToken = await FirebaseAuthentication.getIdToken({
@@ -82,15 +73,8 @@ export const mobileAuthService = {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error("Google SignIn failed:", errorMessage);
-
-      // Log helpful debugging info
-      if (errorMessage.includes("No credentials available")) {
-        console.warn("No saved Google credentials found. Ensure a Google account is added to the device.");
-        console.warn("On emulator: Settings > Accounts > Add account > Google");
-        console.warn("On physical device: Settings > Accounts > Add a Google account");
-      }
-
-      return null;
+      // Re-throw the error so the UI can handle it
+      throw error;
     }
   },
 

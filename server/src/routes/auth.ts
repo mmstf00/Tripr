@@ -22,11 +22,12 @@ router.post("/login", async (req: express.Request, res: Response) => {
 
     // Try to validate as Google OAuth token first (web)
     let tokenInfo = await validateGoogleToken(accessToken, GOOGLE_CLIENT_ID);
+    let isFirebaseToken = false;
 
     // If that fails, try to validate as Firebase ID token (mobile)
     if (!tokenInfo) {
-      console.log("Token validation as OAuth failed, trying Firebase validation");
       tokenInfo = await validateFirebaseToken(accessToken);
+      isFirebaseToken = true;
     }
 
     // Validate token
@@ -34,11 +35,15 @@ router.post("/login", async (req: express.Request, res: Response) => {
       return res.status(401).json({ error: "Invalid or expired Google token" });
     }
 
-    // Fetch complete user info
-    const userInfo = await fetchGoogleUserInfo(accessToken);
-
-    if (!userInfo) {
-      return res.status(401).json({ error: "Failed to fetch user information" });
+    // For Firebase tokens, we already have all the user info from the decoded token
+    // For OAuth tokens, we need to fetch additional user info
+    let userInfo = tokenInfo;
+    if (!isFirebaseToken) {
+      const fetchedInfo = await fetchGoogleUserInfo(accessToken);
+      if (!fetchedInfo) {
+        return res.status(401).json({ error: "Failed to fetch user information" });
+      }
+      userInfo = fetchedInfo;
     }
 
     // Find or create user
@@ -108,11 +113,12 @@ router.post("/register", async (req: express.Request, res: Response) => {
 
     // Try to validate as Google OAuth token first (web)
     let tokenInfo = await validateGoogleToken(accessToken, GOOGLE_CLIENT_ID);
+    let isFirebaseToken = false;
 
     // If that fails, try to validate as Firebase ID token (mobile)
     if (!tokenInfo) {
-      console.log("Token validation as OAuth failed, trying Firebase validation");
       tokenInfo = await validateFirebaseToken(accessToken);
+      isFirebaseToken = true;
     }
 
     // Validate token
@@ -120,11 +126,15 @@ router.post("/register", async (req: express.Request, res: Response) => {
       return res.status(401).json({ error: "Invalid or expired Google token" });
     }
 
-    // Fetch complete user info
-    const userInfo = await fetchGoogleUserInfo(accessToken);
-
-    if (!userInfo) {
-      return res.status(401).json({ error: "Failed to fetch user information" });
+    // For Firebase tokens, we already have all the user info from the decoded token
+    // For OAuth tokens, we need to fetch additional user info
+    let userInfo = tokenInfo;
+    if (!isFirebaseToken) {
+      const fetchedInfo = await fetchGoogleUserInfo(accessToken);
+      if (!fetchedInfo) {
+        return res.status(401).json({ error: "Failed to fetch user information" });
+      }
+      userInfo = fetchedInfo;
     }
 
     // Check if user already exists

@@ -72,7 +72,17 @@ const Login = () => {
         error instanceof Error
           ? error.message
           : "Failed to login. Please try again.";
-      toast.error(errorMessage);
+
+      if (errorMessage.includes("No credentials available")) {
+        toast.error(
+          "No Google account found. Please add one in device settings.",
+          {
+            duration: 5000,
+          }
+        );
+      } else {
+        toast.error(errorMessage);
+      }
       setIsLoading(false);
     }
   };

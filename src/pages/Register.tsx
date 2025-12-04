@@ -1,11 +1,10 @@
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
 } from "@/components/ui/data/card";
-import { Checkbox } from "@/components/ui/form/checkbox";
 import { Button } from "@/components/ui/interactive/button";
 import { useAuth } from "@/hooks/useAuth";
 import { authService, DEFAULT_SESSION_TIMEOUT } from "@/services/auth";
@@ -73,7 +72,14 @@ const Register = () => {
         error instanceof Error
           ? error.message
           : "Failed to register. Please try again.";
-      toast.error(errorMessage);
+      
+      if (errorMessage.includes("No credentials available")) {
+        toast.error("No Google account found. Please add one in device settings.", {
+          duration: 5000,
+        });
+      } else {
+        toast.error(errorMessage);
+      }
       setIsLoading(false);
     }
   };
