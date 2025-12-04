@@ -1,5 +1,5 @@
 import { firebaseAuth } from "../config/firebase.js";
-import { GoogleTokenInfo } from "../types/auth";
+import { GoogleTokenInfo } from "../types/auth.js";
 
 const GOOGLE_TOKENINFO_URL = "https://www.googleapis.com/oauth2/v3/tokeninfo";
 

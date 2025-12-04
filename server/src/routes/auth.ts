@@ -1,8 +1,8 @@
 import { randomBytes } from "crypto";
 import express, { Response, Router } from "express";
-import { db } from "../db/database";
-import { AuthenticatedRequest, requireAuth } from "../middleware/auth";
-import { fetchGoogleUserInfo, validateFirebaseToken, validateGoogleToken } from "../services/googleAuth";
+import { db } from "../db/database.js";
+import { AuthenticatedRequest, requireAuth } from "../middleware/auth.js";
+import { fetchGoogleUserInfo, validateFirebaseToken, validateGoogleToken } from "../services/googleAuth.js";
 
 const router = Router();
 

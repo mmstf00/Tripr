@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { db } from "../db/database";
+import { db } from "../db/database.js";
 
 export interface AuthenticatedRequest extends Request {
   userId?: string;
