@@ -6,10 +6,10 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "tsx watch --inspect src/index.ts",
-    "dev:android": "cross-env DOTENV_CONFIG_PATH=.env.android tsx watch --inspect src/index.ts",
+    "dev": "cross-env NODE_OPTIONS='--no-deprecation' tsx watch --inspect src/index.ts",
+    "dev:android": "cross-env NODE_OPTIONS='--no-deprecation' DOTENV_CONFIG_PATH=.env.android tsx watch --inspect src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js",
+    "start": "cross-env NODE_OPTIONS='--no-deprecation' node dist/index.js",
     "type-check": "tsc --noEmit",
     "postinstall": "prisma generate"
   },
@@ -21,10 +21,7 @@
     "dotenv": "^16.6.1",
     "express": "^4.21.1",
     "firebase-admin": "^13.6.0",
-    "https": "^1.0.0",
-    "pg": "^8.16.3",
-    "selfsigned": "^4.0.0",
-    "spdy": "^4.0.2"
+    "pg": "^8.16.3"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.7",
@@ -32,7 +29,7 @@
     "@types/express": "^5.0.0",
     "@types/node": "^22.16.5",
     "cross-env": "^7.0.3",
-    "prisma": "7.0.0",
+    "prisma": "^7.1.0",
     "tsx": "^4.19.2",
     "typescript": "^5.8.3"
   }
