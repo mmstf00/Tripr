@@ -227,15 +227,6 @@ const Login = () => {
               Privacy Policy
             </a>
           </p>
-          <p className="text-xs text-center text-muted-foreground leading-relaxed">
-            Don't have an account?{" "}
-            <a
-              href="/register"
-              className="underline hover:text-primary transition-colors font-semibold"
-            >
-              Sign Up
-            </a>
-          </p>
         </CardContent>
       </Card>
 
