@@ -20,6 +20,11 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
+// Root route - prevent source code exposure
+app.get("/", (_req, res) => {
+  res.status(200).json({ message: "API Server" });
+});
+
 // Health check
 app.get("/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
@@ -27,6 +32,11 @@ app.get("/health", (_req, res) => {
 
 // API routes
 app.use("/api/auth", authRoutes);
+
+// Catch-all 404 handler - prevent source code exposure
+app.use((_req, res) => {
+  res.status(404).json({ error: "Not Found" });
+});
 
 
 export { app };
