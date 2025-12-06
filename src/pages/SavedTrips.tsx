@@ -49,10 +49,20 @@ const SavedTrips = () => {
   } = useQuery({
     queryKey: ["trips"],
     queryFn: async () => {
-      const result = await tripsService.getTrips();
-      // Ensure we always return an array
-      return Array.isArray(result) ? result : [];
+      try {
+        const result = await tripsService.getTrips();
+        // Ensure we always return an array
+        return Array.isArray(result) ? result : [];
+      } catch (error) {
+        // Log error but don't throw - return empty array instead
+        console.error("Error fetching trips:", error);
+        // If it's a 401/403, the API client will handle logout
+        // For other errors, return empty array to show empty state
+        return [];
+      }
     },
+    retry: 1, // Only retry once
+    retryOnMount: false, // Don't retry on component mount if it failed
   });
 
   const deleteMutation = useMutation({

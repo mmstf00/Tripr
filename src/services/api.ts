@@ -63,6 +63,23 @@ class ApiClient {
 
       // Handle other errors
       if (!response.ok) {
+        // Don't log out on 404 errors - these are usually resource not found, not auth issues
+        if (response.status === 404) {
+          let errorData: unknown;
+          try {
+            errorData = await response.json();
+          } catch {
+            errorData = await response.text();
+          }
+
+          const error: ApiError = {
+            message: `Resource not found: ${response.statusText}`,
+            status: response.status,
+            data: errorData,
+          };
+          throw error;
+        }
+
         let errorData: unknown;
         try {
           errorData = await response.json();
