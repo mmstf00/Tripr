@@ -9,6 +9,27 @@ const router = Router();
 const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 
+// Helper function to get cookie options
+// In production (Vercel), frontend and backend are typically on different domains,
+// so we need sameSite: "none" with secure: true for cross-domain cookies
+function getCookieOptions(req: express.Request) {
+  const isProduction = process.env.NODE_ENV === "production";
+  // Check if we have ALLOWED_ORIGINS set (indicates cross-domain setup)
+  const hasAllowedOrigins = !!process.env.ALLOWED_ORIGINS;
+
+  // Use cross-domain settings if in production or if ALLOWED_ORIGINS is set
+  // This ensures cookies work when frontend and backend are on different domains
+  const useCrossDomain = isProduction || hasAllowedOrigins;
+
+  return {
+    httpOnly: true,
+    secure: useCrossDomain, // secure: true is required when sameSite: "none"
+    sameSite: (useCrossDomain ? "none" : "lax") as "none" | "lax" | "strict",
+    maxAge: SESSION_DURATION_MS,
+    path: "/",
+  };
+}
+
 // POST /api/auth/login
 // Validates Google token and creates a session
 // Supports both web OAuth tokens and Firebase ID tokens from mobile apps
@@ -77,14 +98,8 @@ router.post("/login", async (req: express.Request, res: Response) => {
 
     await db.createSession(sessionId, user.id, expiresAt);
 
-    // Set httpOnly cookie
-    res.cookie("sessionId", sessionId, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: SESSION_DURATION_MS,
-      path: "/",
-    });
+    // Set httpOnly cookie with cross-domain support
+    res.cookie("sessionId", sessionId, getCookieOptions(req));
 
     // Return user data (without sensitive info)
     res.json({
@@ -161,14 +176,8 @@ router.post("/register", async (req: express.Request, res: Response) => {
 
     await db.createSession(sessionId, user.id, expiresAt);
 
-    // Set httpOnly cookie
-    res.cookie("sessionId", sessionId, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: SESSION_DURATION_MS,
-      path: "/",
-    });
+    // Set httpOnly cookie with cross-domain support
+    res.cookie("sessionId", sessionId, getCookieOptions(req));
 
     // Return user data (without sensitive info)
     res.json({
@@ -240,12 +249,11 @@ router.post("/logout", requireAuth, async (req: AuthenticatedRequest, res: Respo
       await db.deleteSession(req.sessionId);
     }
 
-    // Clear cookie
+    // Clear cookie - use same settings as when setting the cookie
+    const cookieOptions = getCookieOptions(req);
     res.clearCookie("sessionId", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
+      ...cookieOptions,
+      maxAge: undefined, // Not needed for clearCookie
     });
 
     res.json({ message: "Logged out successfully" });

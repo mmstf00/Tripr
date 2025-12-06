@@ -16,6 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/overlay/alert-dialog";
+import { useAuth } from "@/hooks/useAuth";
 import { Trip, tripsService } from "@/services/trips";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -39,6 +40,7 @@ import { toast } from "sonner";
 const SavedTrips = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { logout } = useAuth();
   const [tripToDelete, setTripToDelete] = useState<Trip | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
@@ -57,18 +59,32 @@ const SavedTrips = () => {
         // Log error for debugging
         console.error("Error fetching trips:", error);
 
-        // For 401/403 errors, don't show error - just return empty array
-        // This allows logged-in users to see the empty state instead of an error
+        // Handle authentication errors (401/403) - session expired or access denied
         if (error && typeof error === "object" && "status" in error) {
           const apiError = error as { status: number; message?: string };
           if (apiError.status === 401 || apiError.status === 403) {
-            // User might be logged in but session expired, or resource access denied
-            // Return empty array to show empty state instead of error
+            // Session expired or invalid - log out to maintain state consistency
+            console.log("Session expired or invalid, logging out user");
+
+            // Show user-friendly message
+            toast.error(
+              apiError.status === 401
+                ? "Your session has expired. Please log in again."
+                : "Access denied. Please log in again.",
+              {
+                duration: 5000,
+              }
+            );
+
+            // Log out to clear frontend auth state and sync with backend
+            await logout();
+
+            // Return empty array - ProtectedRoute will redirect to login
             return [];
           }
         }
 
-        // For other errors, also return empty array to show empty state
+        // For other errors, return empty array to show empty state
         // This provides a better UX than showing an error message
         return [];
       }
