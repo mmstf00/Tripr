@@ -1,8 +1,7 @@
 import { Header } from "@/components/Header";
-import { Button } from "@/components/ui/interactive/button";
 import { Card } from "@/components/ui/data/card";
-import { Input } from "@/components/ui/form/input";
-import { ArrowRight, Search } from "lucide-react";
+import { Button } from "@/components/ui/interactive/button";
+import { ArrowRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -36,11 +35,14 @@ const Onboarding = () => {
   };
 
   const handleContinue = () => {
-    if (selectedTypes.length > 0) {
-      navigate("/country-select", {
-        state: { selectedPreferences: selectedTypes },
-      });
-    }
+    // If nothing is selected, consider all trip types as selected
+    const preferencesToPass = selectedTypes.length > 0 
+      ? selectedTypes 
+      : tripTypes.map(type => type.id);
+    
+    navigate("/country-select", {
+      state: { selectedPreferences: preferencesToPass },
+    });
   };
 
   const displayedOptions = useMemo(() => {
@@ -63,20 +65,6 @@ const Onboarding = () => {
             <p className="text-xl text-muted-foreground">
               Select the travel styles that excite you most
             </p>
-          </div>
-
-          {/* Search Bar */}
-          <div className="mb-8 max-w-md mx-auto">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-              <Input
-                type="text"
-                placeholder="Search options..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-12 text-base"
-              />
-            </div>
           </div>
 
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 mb-12">
@@ -110,7 +98,6 @@ const Onboarding = () => {
             <Button
               size="lg"
               onClick={handleContinue}
-              disabled={selectedTypes.length === 0}
               className="px-12"
             >
               Continue to Destinations
