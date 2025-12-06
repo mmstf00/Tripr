@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import express from "express";
 import { db } from "./db/database.js";
 import authRoutes from "./routes/auth.js";
+import tripRoutes from "./routes/trips.js";
 
 dotenv.config();
 
@@ -32,6 +33,7 @@ app.get("/health", (_req, res) => {
 
 // API routes
 app.use("/api/auth", authRoutes);
+app.use("/api/trips", tripRoutes);
 
 // Catch-all 404 handler - prevent source code exposure
 app.use((_req, res) => {

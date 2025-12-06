@@ -1,4 +1,8 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/data/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/data/avatar";
 import { Button } from "@/components/ui/interactive/button";
 import {
   DropdownMenu,
@@ -9,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/overlay/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, Sparkles, User as UserIcon } from "lucide-react";
+import { LogOut, MapPin, Sparkles, User as UserIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -87,6 +91,13 @@ export const UserMenu = () => {
         <DropdownMenuItem className="cursor-pointer transition-colors focus:bg-accent">
           <UserIcon className="mr-2 h-4 w-4" />
           <span>Profile</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className="cursor-pointer transition-colors focus:bg-accent"
+          onClick={() => navigate("/saved-trips")}
+        >
+          <MapPin className="mr-2 h-4 w-4" />
+          <span>Saved Trips</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem

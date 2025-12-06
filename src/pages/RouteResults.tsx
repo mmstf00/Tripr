@@ -1,6 +1,5 @@
 import { Header } from "@/components/Header";
 import { Badge } from "@/components/ui/data/badge";
-import { Button } from "@/components/ui/interactive/button";
 import {
   Card,
   CardContent,
@@ -8,6 +7,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/data/card";
+import { Button } from "@/components/ui/interactive/button";
+import { tripsService } from "@/services/trips";
 import { Country, RouteMetrics } from "@/types/countries";
 import {
   calculateDistance,
@@ -23,11 +24,13 @@ import {
   MapPin,
   Navigation,
   RefreshCw,
+  Save,
   Sparkles,
   Train,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 interface SwipeItem {
   id: string;
@@ -61,6 +64,7 @@ const RouteResults = () => {
 
   const [optimizedRoute, setOptimizedRoute] = useState<SwipeItem[]>([]);
   const [routeMetrics, setRouteMetrics] = useState<RouteMetrics | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (!country || likedItems.length === 0) {
@@ -396,7 +400,39 @@ const RouteResults = () => {
               <RefreshCw className="mr-2 w-5 h-5" />
               Plan Another Trip
             </Button>
-            <Button size="lg" variant="hero" className="px-8">
+            <Button
+              size="lg"
+              variant="hero"
+              className="px-8"
+              onClick={async () => {
+                if (!country || optimizedRoute.length === 0) return;
+
+                setIsSaving(true);
+                try {
+                  const tripName = `${
+                    country.name
+                  } Trip - ${new Date().toLocaleDateString()}`;
+                  await tripsService.createTrip({
+                    name: tripName,
+                    country: country.name,
+                    countryId: country.id,
+                    items: optimizedRoute,
+                    routeMetrics: routeMetrics || undefined,
+                  });
+                  toast.success("Trip saved successfully!");
+                } catch (error) {
+                  console.error("Error saving trip:", error);
+                  toast.error("Failed to save trip. Please try again.");
+                } finally {
+                  setIsSaving(false);
+                }
+              }}
+              disabled={isSaving}
+            >
+              <Save className="mr-2 w-5 h-5" />
+              {isSaving ? "Saving..." : "Save Trip"}
+            </Button>
+            <Button size="lg" variant="outline" className="px-8">
               Export Itinerary
             </Button>
           </div>

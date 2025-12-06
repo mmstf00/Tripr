@@ -12,9 +12,10 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import Onboarding from "./pages/Onboarding";
-import RouteResults from "./pages/RouteResults";
-import Swipe from "./pages/Swipe";
 import Register from "./pages/Register";
+import RouteResults from "./pages/RouteResults";
+import SavedTrips from "./pages/SavedTrips";
+import Swipe from "./pages/Swipe";
 
 const queryClient = new QueryClient();
 
@@ -68,6 +69,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <RouteResults />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/saved-trips"
+                element={
+                  <ProtectedRoute>
+                    <SavedTrips />
                   </ProtectedRoute>
                 }
               />

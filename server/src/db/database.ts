@@ -1,5 +1,5 @@
 import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import "dotenv/config";
 import { Session, User } from "../types/auth.js";
 
@@ -73,6 +73,71 @@ class Database {
     setInterval(() => {
       this.deleteExpiredSessions();
     }, intervalMs);
+  }
+
+  // Trip operations
+  async createTrip(userId: string, tripData: {
+    name: string;
+    country: string;
+    countryId: string;
+    items: Prisma.InputJsonValue;
+    routeMetrics?: Prisma.InputJsonValue;
+  }) {
+    if (!prisma.trip) {
+      throw new Error("Prisma trip model not available. Run 'npx prisma generate'");
+    }
+    return prisma.trip.create({
+      data: {
+        userId,
+        name: tripData.name,
+        country: tripData.country,
+        countryId: tripData.countryId,
+        items: tripData.items,
+        routeMetrics: tripData.routeMetrics ?? Prisma.JsonNull,
+      },
+    });
+  }
+
+  async getTripsByUserId(userId: string) {
+    try {
+      // Check if trip model exists (in case Prisma client wasn't regenerated)
+      if (!prisma.trip) {
+        console.error("Prisma trip model not available. Run 'npx prisma generate'");
+        return [];
+      }
+      return prisma.trip.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+      });
+    } catch (error) {
+      console.error("Error fetching trips:", error);
+      return [];
+    }
+  }
+
+  async getTripById(tripId: string, userId: string) {
+    if (!prisma.trip) {
+      console.error("Prisma trip model not available. Run 'npx prisma generate'");
+      return null;
+    }
+    return prisma.trip.findFirst({
+      where: {
+        id: tripId,
+        userId,
+      },
+    });
+  }
+
+  async deleteTrip(tripId: string, userId: string) {
+    if (!prisma.trip) {
+      throw new Error("Prisma trip model not available. Run 'npx prisma generate'");
+    }
+    return prisma.trip.deleteMany({
+      where: {
+        id: tripId,
+        userId,
+      },
+    });
   }
 }
 

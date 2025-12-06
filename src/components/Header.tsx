@@ -1,5 +1,5 @@
 import { useAuth } from "@/hooks/useAuth";
-import { Plane } from "lucide-react";
+import { MapPin, Plane } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { UserMenu } from "./UserMenu";
 import { Button } from "./ui/interactive/button";
@@ -28,14 +28,24 @@ export const Header = () => {
 
         <div className="flex items-center space-x-4">
           {isAuthenticated && user && (
-            <div className="hidden sm:flex items-center space-x-3 px-4 py-2 rounded-lg bg-muted/50">
-              <span className="text-sm text-muted-foreground">
-                Welcome back,
-              </span>
-              <span className="text-sm font-semibold text-foreground">
-                {user.name.split(" ")[0]}
-              </span>
-            </div>
+            <>
+              <div className="hidden sm:flex items-center space-x-3 px-4 py-2 rounded-lg bg-muted/50">
+                <span className="text-sm text-muted-foreground">
+                  Welcome back,
+                </span>
+                <span className="text-sm font-semibold text-foreground">
+                  {user.name.split(" ")[0]}
+                </span>
+              </div>
+              <Button
+                variant="ghost"
+                onClick={() => navigate("/saved-trips")}
+                className="hidden sm:flex items-center gap-2"
+              >
+                <MapPin className="h-4 w-4" />
+                <span className="hidden md:inline">Saved Trips</span>
+              </Button>
+            </>
           )}
           <UserMenu />
         </div>
