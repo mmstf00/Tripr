@@ -8,7 +8,6 @@ import {
   CardTitle,
 } from "@/components/ui/data/card";
 import { Button } from "@/components/ui/interactive/button";
-import { useAuth } from "@/hooks/useAuth";
 import { tripsService } from "@/services/trips";
 import { Country, RouteMetrics } from "@/types/countries";
 import {
@@ -55,7 +54,6 @@ interface SwipeItem {
 const RouteResults = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useAuth();
 
   const [country, setCountry] = useState<Country | null>(
     location.state?.country || null
@@ -424,35 +422,7 @@ const RouteResults = () => {
                   toast.success("Trip saved successfully!");
                 } catch (error) {
                   console.error("Error saving trip:", error);
-
-                  // Handle authentication errors
-                  if (error && typeof error === "object" && "status" in error) {
-                    const apiError = error as {
-                      status: number;
-                      message?: string;
-                    };
-                    if (apiError.status === 401 || apiError.status === 403) {
-                      toast.error(
-                        apiError.status === 401
-                          ? "Your session has expired. Please log in again."
-                          : "Access denied. Please log in again.",
-                        {
-                          duration: 5000,
-                        }
-                      );
-                      // Log out to maintain state consistency
-                      await logout();
-                      return;
-                    }
-                  }
-
-                  // Generic error message for other errors
-                  const errorMessage =
-                    error && typeof error === "object" && "message" in error
-                      ? (error as { message: string }).message
-                      : "Failed to save trip. Please try again.";
-
-                  toast.error(errorMessage);
+                  toast.error("Failed to save trip. Please try again.");
                 } finally {
                   setIsSaving(false);
                 }
