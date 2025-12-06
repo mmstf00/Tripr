@@ -111,6 +111,7 @@ router.post("/login", async (req: express.Request, res: Response) => {
         email: user.email,
         name: user.name,
         picture: user.picture,
+        createdAt: user.createdAt,
       },
     });
   } catch (error) {
@@ -189,6 +190,7 @@ router.post("/register", async (req: express.Request, res: Response) => {
         email: user.email,
         name: user.name,
         picture: user.picture,
+        createdAt: user.createdAt,
       },
     });
   } catch (error) {
@@ -213,6 +215,7 @@ router.get("/me", requireAuth, async (req: AuthenticatedRequest, res: Response) 
         email: user.email,
         name: user.name,
         picture: user.picture,
+        createdAt: user.createdAt,
       },
     });
   } catch (error) {
@@ -262,6 +265,44 @@ router.post("/logout", requireAuth, async (req: AuthenticatedRequest, res: Respo
     res.json({ message: "Logged out successfully" });
   } catch (error) {
     console.error("Logout error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// PUT /api/auth/profile
+// Update user profile
+router.put("/profile", requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { name } = req.body;
+
+    if (!name || typeof name !== "string" || name.trim().length === 0) {
+      return res.status(400).json({ error: "Name is required and cannot be empty" });
+    }
+
+    // Validate name length
+    if (name.trim().length > 100) {
+      return res.status(400).json({ error: "Name must be 100 characters or less" });
+    }
+
+    const updatedUser = await db.updateUser(req.userId!, {
+      name: name.trim(),
+    });
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json({
+      user: {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        name: updatedUser.name,
+        picture: updatedUser.picture,
+        createdAt: updatedUser.createdAt,
+      },
+    });
+  } catch (error) {
+    console.error("Update profile error:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });

@@ -7,6 +7,7 @@ import { AuthContext } from "./authContextValue";
 export interface AuthContextType extends AuthState {
   login: (user: User, token: string, expiresIn?: number) => void;
   logout: () => void;
+  updateUser: (user: User) => void;
 }
 
 interface AuthProviderProps {
@@ -131,12 +132,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setUser(null);
   };
 
+  const updateUser = (userData: User) => {
+    authService.saveUser(userData);
+    setUser(userData);
+  };
+
   const value: AuthContextType = {
     user,
     isAuthenticated: !!user,
     isLoading,
     login,
     logout,
+    updateUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
