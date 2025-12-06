@@ -132,6 +132,10 @@ const Login = () => {
       toast.error("Login failed. Please try again.");
       setIsLoading(false);
     },
+    // Force account selector to show all logged-in Google accounts
+    prompt: "select_account",
+    // Request profile and email scopes
+    scope: "openid email profile",
   });
 
   return (
