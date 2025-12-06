@@ -13,6 +13,17 @@ export async function requireAuth(
 ) {
   const sessionId = req.cookies?.sessionId;
 
+  // Debug logging for cookie issues
+  if (!sessionId && process.env.NODE_ENV === "production") {
+    console.log("Auth debug:", {
+      hasCookies: !!req.cookies,
+      cookieKeys: req.cookies ? Object.keys(req.cookies) : [],
+      origin: req.get("origin"),
+      referer: req.get("referer"),
+      host: req.get("host"),
+    });
+  }
+
   if (!sessionId) {
     return res.status(401).json({ error: "Unauthorized: No session" });
   }

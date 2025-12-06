@@ -10,24 +10,39 @@ const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 
 // Helper function to get cookie options
-// In production (Vercel), frontend and backend are typically on different domains,
+// In production (Vercel), frontend and backend are on different domains,
 // so we need sameSite: "none" with secure: true for cross-domain cookies
 function getCookieOptions(req: express.Request) {
   const isProduction = process.env.NODE_ENV === "production";
-  // Check if we have ALLOWED_ORIGINS set (indicates cross-domain setup)
   const hasAllowedOrigins = !!process.env.ALLOWED_ORIGINS;
 
-  // Use cross-domain settings if in production or if ALLOWED_ORIGINS is set
-  // This ensures cookies work when frontend and backend are on different domains
+  // In production (Vercel), always use cross-domain settings
+  // In development, use lax for same-domain cookies
+  // If ALLOWED_ORIGINS is set, assume cross-domain setup
   const useCrossDomain = isProduction || hasAllowedOrigins;
 
-  return {
+  const options = {
     httpOnly: true,
-    secure: useCrossDomain, // secure: true is required when sameSite: "none"
+    secure: useCrossDomain, // secure: true is REQUIRED when sameSite: "none"
     sameSite: (useCrossDomain ? "none" : "lax") as "none" | "lax" | "strict",
     maxAge: SESSION_DURATION_MS,
     path: "/",
+    // Don't set domain - let browser handle it automatically
   };
+
+  // Log cookie settings for debugging in production
+  if (isProduction) {
+    console.log("Cookie settings:", {
+      secure: options.secure,
+      sameSite: options.sameSite,
+      useCrossDomain,
+      hasAllowedOrigins,
+      nodeEnv: process.env.NODE_ENV,
+      origin: req.get("origin"),
+    });
+  }
+
+  return options;
 }
 
 // POST /api/auth/login
