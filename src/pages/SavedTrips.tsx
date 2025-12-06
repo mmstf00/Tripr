@@ -54,15 +54,27 @@ const SavedTrips = () => {
         // Ensure we always return an array
         return Array.isArray(result) ? result : [];
       } catch (error) {
-        // Log error but don't throw - return empty array instead
+        // Log error for debugging
         console.error("Error fetching trips:", error);
-        // If it's a 401/403, the API client will handle logout
-        // For other errors, return empty array to show empty state
+
+        // For 401/403 errors, don't show error - just return empty array
+        // This allows logged-in users to see the empty state instead of an error
+        if (error && typeof error === "object" && "status" in error) {
+          const apiError = error as { status: number; message?: string };
+          if (apiError.status === 401 || apiError.status === 403) {
+            // User might be logged in but session expired, or resource access denied
+            // Return empty array to show empty state instead of error
+            return [];
+          }
+        }
+
+        // For other errors, also return empty array to show empty state
+        // This provides a better UX than showing an error message
         return [];
       }
     },
-    retry: 1, // Only retry once
-    retryOnMount: false, // Don't retry on component mount if it failed
+    retry: false, // Don't retry to avoid unnecessary requests
+    refetchOnWindowFocus: false, // Don't refetch on window focus to avoid errors
   });
 
   const deleteMutation = useMutation({
@@ -116,38 +128,6 @@ const SavedTrips = () => {
             <p className="text-muted-foreground text-lg font-medium">
               Loading your trips...
             </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-        <Header />
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center max-w-md px-4">
-            <div className="mb-6">
-              <div className="w-20 h-20 mx-auto rounded-full bg-destructive/10 flex items-center justify-center">
-                <MapPin className="w-10 h-10 text-destructive" />
-              </div>
-            </div>
-            <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-              Error loading trips
-            </h2>
-            <p className="text-muted-foreground mb-6 text-lg">
-              {error instanceof Error ? error.message : "An error occurred"}
-            </p>
-            <Button
-              size="lg"
-              onClick={() =>
-                queryClient.invalidateQueries({ queryKey: ["trips"] })
-              }
-              className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90"
-            >
-              Try Again
-            </Button>
           </div>
         </div>
       </div>

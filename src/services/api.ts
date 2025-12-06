@@ -1,4 +1,3 @@
-import { authService } from "./auth";
 
 export interface ApiError {
   message: string;
@@ -32,31 +31,20 @@ class ApiClient {
         credentials: "include",
       });
 
-      // Handle authentication errors
+      // Handle authentication errors - just throw error, don't automatically log out
+      // Let the calling code decide how to handle auth errors
       if (response.status === 401 || response.status === 403) {
-        console.log("Unauthorized response, clearing auth");
-
-        // Call backend logout to clear server-side session first
+        let errorData: unknown;
         try {
-          await fetch(`${this.baseURL}/api/auth/logout`, {
-            method: "POST",
-            credentials: "include",
-          });
-        } catch (e) {
-          // Ignore logout errors
-        }
-
-        // Clear local auth state
-        await authService.clearAuth();
-
-        // Redirect to login if we're not already there
-        if (window.location.pathname !== "/login") {
-          window.location.href = "/login";
+          errorData = await response.json();
+        } catch {
+          errorData = await response.text();
         }
 
         const error: ApiError = {
           message: "Authentication failed. Please log in again.",
           status: response.status,
+          data: errorData,
         };
         throw error;
       }
