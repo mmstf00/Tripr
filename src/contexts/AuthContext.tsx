@@ -52,7 +52,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
         // Check if token is expired
         if (authService.isTokenExpired()) {
-          console.log("Token expired, clearing auth");
           await authService.clearAuth();
           setIsLoading(false);
           return;
@@ -60,7 +59,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
         // Check if session is expired
         if (authService.isSessionExpired()) {
-          console.log("Session expired, clearing auth");
           await authService.clearAuth();
           setIsLoading(false);
           return;
@@ -75,7 +73,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         if (isValid) {
           setUser(savedUser);
         } else {
-          console.log("Token validation failed, clearing auth");
           await authService.clearAuth();
         }
       } catch (error) {

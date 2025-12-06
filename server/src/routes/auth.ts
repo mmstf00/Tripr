@@ -30,18 +30,6 @@ function getCookieOptions(req: express.Request) {
     // Don't set domain - let browser handle it automatically
   };
 
-  // Log cookie settings for debugging in production
-  if (isProduction) {
-    console.log("Cookie settings:", {
-      secure: options.secure,
-      sameSite: options.sameSite,
-      useCrossDomain,
-      hasAllowedOrigins,
-      nodeEnv: process.env.NODE_ENV,
-      origin: req.get("origin"),
-    });
-  }
-
   return options;
 }
 

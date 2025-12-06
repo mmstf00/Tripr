@@ -56,16 +56,10 @@ const SavedTrips = () => {
         // Ensure we always return an array
         return Array.isArray(result) ? result : [];
       } catch (error) {
-        // Log error for debugging
-        console.error("Error fetching trips:", error);
-
         // Handle authentication errors (401/403) - session expired or access denied
         if (error && typeof error === "object" && "status" in error) {
           const apiError = error as { status: number; message?: string };
           if (apiError.status === 401 || apiError.status === 403) {
-            // Session expired or invalid - log out to maintain state consistency
-            console.log("Session expired or invalid, logging out user");
-
             // Show user-friendly message
             toast.error(
               apiError.status === 401
